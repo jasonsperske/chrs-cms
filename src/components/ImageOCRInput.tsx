@@ -82,8 +82,8 @@ export default function ImageOCRInput() {
                 :
                 <div className="flex flex-wrap">
                     <input disabled={isLoading} type="file" accept="image/png, image/jpeg" onChange={handleImageChange} className="w-full" />
-                    {variations.map((variant) =>
-                        <Card className="p-2 max-w-sm">
+                    {variations.map((variant, index) =>
+                        <Card key={`variant-${index}`} className="p-2 max-w-sm">
                             <CardHeader>{variant.title}</CardHeader>
                             <CardContent>
                                 {variant.author ? <p>by {variant.author}</p> : null}
