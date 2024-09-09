@@ -1,6 +1,5 @@
 ![Screenshot from 2024-09-08 22-39-32](https://github.com/user-attachments/assets/df99cc1b-8976-4fb1-8492-f6287a249569)
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
@@ -8,12 +7,6 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -22,17 +15,60 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## OpenAI Assistant
 
-To learn more about Next.js, take a look at the following resources:
+This application uses an OpenAI assistant called `CHRS Archivist` with the following configuration:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Model: `gpt-4o-mini`
+Instructions:
+```
+Your job is to take OCR extracted text from title pages of books and magazines and turn them into an array of JSON objects with fields named `title` (representing the title of the book), `author` (representing the author of the book), `publisher` (representing the publisher) and `yearPublished` (representing the year published). OCR might have produced extra meaningless characters, present multiple interpretations as an array with a confidence value between 0 and 1 for each option. One or more of the requested fields might also be missing.
+```
+Response format: `json_schema`
+Schema:
+```
+{
+  "name": "book_result",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "variations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            },
+            "publisher": {
+              "type": "string"
+            },
+            "yearPublished": {
+              "type": "number"
+            },
+            "confidence": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "title",
+            "author",
+            "publisher",
+            "yearPublished",
+            "confidence"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "additionalProperties": false,
+    "required": [
+      "variations"
+    ]
+  }
+}
+```
