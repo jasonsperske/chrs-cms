@@ -1,6 +1,6 @@
 'use client'
-import { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from "react";
-import Tesseract, { setLogging } from "tesseract.js";
+import { ChangeEvent, useEffect, useState } from "react";
+import Tesseract from "tesseract.js";
 import { Button } from "./ui/button";
 
 export default function ImageOCRInput() {
@@ -73,7 +73,7 @@ export default function ImageOCRInput() {
                 :
                 <>
                     <input disabled={isLoading} type="file" accept="image/png, image/jpeg" onChange={handleImageChange} />
-                    <img className="max-h-30" src={inputSrc} />
+                    <img alt="" className="max-h-30" src={inputSrc} />
                     <pre>{resultText}</pre>
                 </>
             }
