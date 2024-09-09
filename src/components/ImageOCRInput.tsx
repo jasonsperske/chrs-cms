@@ -2,13 +2,21 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import Tesseract from "tesseract.js";
 import { Button } from "./ui/button";
+import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
+
+type BookVariation = {
+    title: string,
+    author: string,
+    publisher: string,
+    yearPublished: number,
+    confidence: number
+}
 
 export default function ImageOCRInput() {
     const [tesseract, setTesseract] = useState<Tesseract.Worker | null>(null)
+    const [variations, setVariations] = useState<BookVariation[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [loadingMessage, setLoadingMessage] = useState("")
-    const [inputSrc, setInputSrc] = useState("")
-    const [resultText, setResultText] = useState("")
 
     function initTesseract() {
         Tesseract.createWorker("eng", Tesseract.OEM.DEFAULT, {
@@ -37,7 +45,6 @@ export default function ImageOCRInput() {
             setLoadingMessage("Analyzing image: 0%")
             setIsLoading(true)
             const imageUrl = URL.createObjectURL(event.target.files[0])
-            setInputSrc(imageUrl)
             const result = await tesseract.recognize(imageUrl)
             const { text } = result.data
             setLoadingMessage('Analyzing with OpenAI...')
@@ -46,7 +53,10 @@ export default function ImageOCRInput() {
                 body: text
             })
             const aiData = await aiFetch.json()
-            setResultText(JSON.stringify(JSON.parse(aiData.response[0].text.value), undefined, 2))
+            if (aiData.success) {
+                const { variations } = JSON.parse(aiData.response[0].text.value) as { variations: BookVariation[] }
+                setVariations(variations)
+            }
         } catch (err) {
             console.error(err)
         }
@@ -57,8 +67,7 @@ export default function ImageOCRInput() {
         if (tesseract) {
             await tesseract.terminate()
             setLoadingMessage("Canceling analysis")
-            setInputSrc("")
-            setResultText("")
+            setVariations([])
             initTesseract()
         }
     }
@@ -71,11 +80,19 @@ export default function ImageOCRInput() {
                     {tesseract ? <Button variant="ghost" onClick={handleTerminateClick}>&times;</Button> : null}
                 </>
                 :
-                <>
-                    <input disabled={isLoading} type="file" accept="image/png, image/jpeg" onChange={handleImageChange} />
-                    <img alt="" className="max-h-30" src={inputSrc} />
-                    <pre>{resultText}</pre>
-                </>
+                <div className="flex flex-wrap">
+                    <input disabled={isLoading} type="file" accept="image/png, image/jpeg" onChange={handleImageChange} className="w-full" />
+                    {variations.map((variant) =>
+                        <Card className="p-2 max-w-sm">
+                            <CardHeader>{variant.title}</CardHeader>
+                            <CardContent>
+                                {variant.author ? <p>by {variant.author}</p> : null}
+                                <p>Published by {variant.publisher} {variant.yearPublished > 0 ? `(${variant.yearPublished})` : ''}</p>
+                            </CardContent>
+                            <CardDescription>confidence {Math.floor(variant.confidence * 100)}%</CardDescription>
+                        </Card>)
+                    }
+                </div>
             }
         </div>)
 }

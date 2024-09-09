@@ -6,12 +6,7 @@ type Data = {
   name: string
 }
 
-const data: [Data] = [
-  {
-    id: 1,
-    name: 'IRE',
-  }
-]
+const data: Data[] = []
 export default function Home() {
   return (
     <div className="p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
