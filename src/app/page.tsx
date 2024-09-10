@@ -1,30 +1,36 @@
-import ImageOCRInput from "@/components/ImageOCRInput";
+'use client'
+import ImageOCRInput, { BookVariation } from "@/components/ImageOCRInput";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState } from "react";
 
-type Data = {
-  id: number
-  name: string
-}
-
-const data: Data[] = []
 export default function Home() {
+  const [data, setData] = useState<BookVariation[]>([])
+
+  function handleVariantSelection(variant: BookVariation): void {
+    setData([...data, variant])
+  }
+
   return (
     <div className="p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main>
         <div className="row">
-          <ImageOCRInput />
+          <ImageOCRInput onSelectVariant={handleVariantSelection} />
         </div>
         <div className="row">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead key="name">Name</TableHead>
+                <TableHead key="title">Title</TableHead>
+                <TableHead key="author">Author</TableHead>
+                <TableHead key="publisher">Publisher</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((d) =>
-                <TableRow key={d.id}>
-                  <TableCell>{d.name}</TableCell>
+              {data.map((d, index) =>
+                <TableRow key={`book-${index}`}>
+                  <TableCell>{d.title}</TableCell>
+                  <TableCell>{d.author}</TableCell>
+                  <TableCell>{d.publisher}</TableCell>
                 </TableRow>
               )}
             </TableBody>

@@ -4,7 +4,7 @@ import Tesseract from "tesseract.js";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
 
-type BookVariation = {
+export type BookVariation = {
     title: string,
     author: string,
     publisher: string,
@@ -12,7 +12,11 @@ type BookVariation = {
     confidence: number
 }
 
-export default function ImageOCRInput() {
+type Props = {
+    onSelectVariant: (variant: BookVariation) => void
+}
+
+export default function ImageOCRInput({ onSelectVariant }: Props) {
     const [tesseract, setTesseract] = useState<Tesseract.Worker | null>(null)
     const [variations, setVariations] = useState<BookVariation[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -83,11 +87,11 @@ export default function ImageOCRInput() {
                 <div className="flex flex-wrap">
                     <input disabled={isLoading} type="file" accept="image/png, image/jpeg" onChange={handleImageChange} className="w-full" />
                     {variations.map((variant, index) =>
-                        <Card key={`variant-${index}`} className="p-2 max-w-sm">
+                        <Card key={`variant-${index}`} className="p-2 max-w-sm cursor-pointer" onClick={() => onSelectVariant(variant)}>
                             <CardHeader>{variant.title}</CardHeader>
                             <CardContent>
                                 {variant.author ? <p>by {variant.author}</p> : null}
-                                <p>Published by {variant.publisher} {variant.yearPublished > 0 ? `(${variant.yearPublished})` : ''}</p>
+                                <p>Published by {variant.publisher} {variant.yearPublished > 1800 ? `(${variant.yearPublished})` : ''}</p>
                             </CardContent>
                             <CardDescription>confidence {Math.floor(variant.confidence * 100)}%</CardDescription>
                         </Card>)
