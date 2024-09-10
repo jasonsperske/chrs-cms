@@ -87,7 +87,13 @@ export default function ImageOCRInput({ onSelectVariant }: Props) {
                 <div className="flex flex-wrap">
                     <input disabled={isLoading} type="file" accept="image/png, image/jpeg" onChange={handleImageChange} className="w-full" />
                     {variations.map((variant, index) =>
-                        <Card key={`variant-${index}`} className="p-2 max-w-sm cursor-pointer" onClick={() => onSelectVariant(variant)}>
+                        <Card
+                            key={`variant-${index}`}
+                            className="p-2 max-w-sm cursor-pointer"
+                            onClick={() => {
+                                onSelectVariant(variant)
+                                setVariations([])
+                            }}>
                             <CardHeader>{variant.title}</CardHeader>
                             <CardContent>
                                 {variant.author ? <p>by {variant.author}</p> : null}
