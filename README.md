@@ -1,5 +1,4 @@
-![Screenshot from 2024-09-08 22-39-32](https://github.com/user-attachments/assets/df99cc1b-8976-4fb1-8492-f6287a249569)
-
+[Screencast from 2024-09-10 09-52-13.webm](https://github.com/user-attachments/assets/ba5160db-5f9a-4477-b3ef-b5a405aa36aa)
 
 ## Getting Started
 
