@@ -1,5 +1,6 @@
 'use client'
-import ImageOCRInput, { BookVariation } from "@/components/ImageOCRInput";
+import { BookVariation } from "@/components/ImageOCRInput";
+import MultipleImageInput from "@/components/MultipleImageInput";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
 
@@ -14,7 +15,7 @@ export default function Home() {
     <div className="p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main>
         <div className="row">
-          <ImageOCRInput onSelectVariant={handleVariantSelection} />
+          <MultipleImageInput onSelectVariant={handleVariantSelection} />
         </div>
         <div className="row">
           <Table>
