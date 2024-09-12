@@ -52,7 +52,7 @@ export default function ImageOCRInput({ onSelectVariant }: Props) {
             const result = await tesseract.recognize(imageUrl)
             const { text } = result.data
             setLoadingMessage('Analyzing with OpenAI...')
-            const aiFetch = await fetch('/api/openai', {
+            const aiFetch = await fetch('/api/openai/ocr', {
                 method: 'POST',
                 body: text
             })
