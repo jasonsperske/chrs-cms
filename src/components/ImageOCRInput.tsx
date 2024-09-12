@@ -9,6 +9,10 @@ export type BookVariation = {
     author: string,
     publisher: string,
     yearPublished: number,
+    monthPublished: string,
+    mediaType: string,
+    serialNumber: string,
+    catalogNumber: string,
     confidence: number
 }
 
