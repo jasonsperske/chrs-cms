@@ -15,7 +15,12 @@ export function asLibraryEntry(id: number, variation: BookVariation) {
     const entry: LibraryEntry = {
         id,
         mediaType: variation.mediaType,
-        title: variation.title
+        title: variation.title,
+        author: variation.author,
+        publishedBy: variation.publishedBy,
+        publishedOn: `${variation.monthPublished ?? ''} ${variation.yearPublished ?? ''}`.trim(),
+        serialNumber: variation.serialNumber,
+        catalogNumber: variation.catalogNumber
     }
     return entry
 }

@@ -2,7 +2,7 @@
 import MultipleImageInput from "@/components/MultipleImageInput";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { asLibraryEntry, LibraryEntry } from "@/lib/types/LibraryEntry";
-import { BookVariation } from "@/lib/types/openai/BookVariation";
+import { asFormData, BookVariation } from "@/lib/types/openai/BookVariation";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -15,18 +15,9 @@ export default function Home() {
       })
   }, [])
   function handleVariantSelection(variant: BookVariation): void {
-    const body = new FormData()
-    body.set("mediaType", variant.mediaType)
-    body.set("title", variant.title)
-    body.set("author", variant.author)
-    body.set("publishedBy", variant.publishedBy)
-    body.set("publishedOn", `${variant.monthPublished ?? ''} ${variant.yearPublished ?? ''}`.trim())
-    body.set("serialNumber", variant.serialNumber)
-    body.set("catalogNumber", variant.catalogNumber)
-
     fetch('/api/library', {
       method: 'POST',
-      body
+      body: asFormData(variant)
     }).then(res => res.json())
       .then((newEntry) => {
         setData([...data, asLibraryEntry(newEntry.entry.id, variant)])
@@ -53,7 +44,7 @@ export default function Home() {
             </TableHeader>
             <TableBody>
               {data.map((d, index) =>
-                <TableRow key={`book-${index}`}>
+                <TableRow key={d.id}>
                   <TableCell>{d.title}</TableCell>
                   <TableCell>{d.author}</TableCell>
                   <TableCell>{d.mediaType}</TableCell>
