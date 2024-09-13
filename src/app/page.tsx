@@ -20,7 +20,7 @@ export default function Home() {
       body: asFormData(variant)
     }).then(res => res.json())
       .then((newEntry) => {
-        setData([...data, asLibraryEntry(newEntry.entry.id, variant)])
+        setData([asLibraryEntry(newEntry.entry.id, variant), ...data])
       })
   }
 
@@ -43,7 +43,7 @@ export default function Home() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((d, index) =>
+              {data.map((d) =>
                 <TableRow key={d.id}>
                   <TableCell>{d.title}</TableCell>
                   <TableCell>{d.author}</TableCell>

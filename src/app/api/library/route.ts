@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { apiGet, apiPost } from "../database";
+import { LibraryEntry } from "@/lib/types/LibraryEntry";
 
-export type Entry = {}
-
-export async function GET(request: Request) {
-    const results = await apiGet<Entry[]>('SELECT * FROM library ORDER BY title ASC')
+export async function GET() {
+    const results = await apiGet<LibraryEntry>('SELECT * FROM library ORDER BY title ASC')
     return NextResponse.json({ success: true, results })
 }
 

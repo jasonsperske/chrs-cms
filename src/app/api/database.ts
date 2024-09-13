@@ -26,7 +26,7 @@ export async function apiGet<T>(query: string) {
     });
 };
 
-type Optional = string | Object | undefined
+type Optional = string | object | undefined
 export async function apiPost(query: string, values: Optional[]) {
     return await new Promise<number>((resolve, reject) => {
         db.run(query, values, function (err) {
