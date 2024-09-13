@@ -3,18 +3,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import Tesseract from "tesseract.js";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
-
-export type BookVariation = {
-    title: string,
-    author: string,
-    publisher: string,
-    yearPublished: number,
-    monthPublished: string,
-    mediaType: string,
-    serialNumber: string,
-    catalogNumber: string,
-    confidence: number
-}
+import { BookVariation } from "@/lib/types/openai/BookVariation";
 
 type Props = {
     onSelectVariant: (variant: BookVariation) => void
@@ -101,7 +90,7 @@ export default function ImageOCRInput({ onSelectVariant }: Props) {
                             <CardHeader>{variant.title}</CardHeader>
                             <CardContent>
                                 {variant.author ? <p>by {variant.author}</p> : null}
-                                <p>Published by {variant.publisher} {variant.yearPublished > 1800 ? `(${variant.yearPublished})` : ''}</p>
+                                <p>Published by {variant.publishedBy} {variant.yearPublished > 1800 ? `(${variant.yearPublished})` : ''}</p>
                             </CardContent>
                             <CardDescription>confidence {Math.floor(variant.confidence * 100)}%</CardDescription>
                         </Card>)

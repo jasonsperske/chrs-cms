@@ -1,8 +1,8 @@
 "use client";
 import React, { FormEvent, useState } from "react";
-import { BookVariation } from "./ImageOCRInput";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
+import { BookVariation } from "@/lib/types/openai/BookVariation";
 
 type Props = {
     onSelectVariant: (variant: BookVariation) => void;
@@ -126,7 +126,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                     <CardContent>
                         {variant.author ? <p>by {variant.author}</p> : null}
                         <p>
-                            {variant.publisher ? `Published by ${variant.publisher}` : null}
+                            {variant.publishedBy ? `Published by ${variant.publishedBy}` : null}
                         </p>
                         <p>
                             {variant.monthPublished}

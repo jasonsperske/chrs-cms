@@ -1,14 +1,36 @@
 'use client'
-import { BookVariation } from "@/components/ImageOCRInput";
 import MultipleImageInput from "@/components/MultipleImageInput";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useState } from "react";
+import { asLibraryEntry, LibraryEntry } from "@/lib/types/LibraryEntry";
+import { BookVariation } from "@/lib/types/openai/BookVariation";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [data, setData] = useState<BookVariation[]>([])
-
+  const [data, setData] = useState<LibraryEntry[]>([])
+  useEffect(() => {
+    fetch('/api/library')
+      .then(res => res.json())
+      .then((data) => {
+        setData(data.results)
+      })
+  }, [])
   function handleVariantSelection(variant: BookVariation): void {
-    setData([...data, variant])
+    const body = new FormData()
+    body.set("mediaType", variant.mediaType)
+    body.set("title", variant.title)
+    body.set("author", variant.author)
+    body.set("publishedBy", variant.publishedBy)
+    body.set("publishedOn", `${variant.monthPublished ?? ''} ${variant.yearPublished ?? ''}`.trim())
+    body.set("serialNumber", variant.serialNumber)
+    body.set("catalogNumber", variant.catalogNumber)
+
+    fetch('/api/library', {
+      method: 'POST',
+      body
+    }).then(res => res.json())
+      .then((newEntry) => {
+        setData([...data, asLibraryEntry(newEntry.entry.id, variant)])
+      })
   }
 
   return (
@@ -35,8 +57,8 @@ export default function Home() {
                   <TableCell>{d.title}</TableCell>
                   <TableCell>{d.author}</TableCell>
                   <TableCell>{d.mediaType}</TableCell>
-                  <TableCell>{d.publisher}</TableCell>
-                  <TableCell>{d.monthPublished} {d.yearPublished}</TableCell>
+                  <TableCell>{d.publishedBy}</TableCell>
+                  <TableCell>{d.publishedOn}</TableCell>
                   <TableCell>{d.serialNumber ? `isbn:${d.serialNumber}` : null} {d.catalogNumber ? `catalog:${d.catalogNumber}` : null}</TableCell>
                 </TableRow>
               )}

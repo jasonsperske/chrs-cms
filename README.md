@@ -43,7 +43,7 @@ Schema:
             "author": {
               "type": "string"
             },
-            "publisher": {
+            "publishedBy": {
               "type": "string"
             },
             "yearPublished": {
@@ -56,7 +56,7 @@ Schema:
           "required": [
             "title",
             "author",
-            "publisher",
+            "publishedBy",
             "yearPublished",
             "confidence"
           ],
