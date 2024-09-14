@@ -7,6 +7,9 @@ export type LibraryEntry = {
     author?: string,
     publishedBy?: string,
     publishedOn?: string,
+    publishedLocation?: string,
+    edition?: string,
+    editionYear?: string,
     serialNumber?: string,
     catalogNumber?: string
 }

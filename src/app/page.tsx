@@ -37,8 +37,8 @@ export default function Home() {
                 <TableHead key="title">Title</TableHead>
                 <TableHead key="author">Author</TableHead>
                 <TableHead key="mediaType">Type</TableHead>
-                <TableHead key="publisher">Publisher</TableHead>
                 <TableHead key="published">Published</TableHead>
+                <TableHead key="edition">Edition</TableHead>
                 <TableHead key="serialNumbers">Serial Numbers</TableHead>
               </TableRow>
             </TableHeader>
@@ -48,9 +48,23 @@ export default function Home() {
                   <TableCell>{d.title}</TableCell>
                   <TableCell>{d.author}</TableCell>
                   <TableCell>{d.mediaType}</TableCell>
-                  <TableCell>{d.publishedBy}</TableCell>
-                  <TableCell>{d.publishedOn}</TableCell>
-                  <TableCell>{d.serialNumber ? `isbn:${d.serialNumber}` : null} {d.catalogNumber ? `catalog:${d.catalogNumber}` : null}</TableCell>
+                  <TableCell>
+                    {d.publishedBy}
+                    {' '}
+                    {d.publishedLocation}
+                    {' '}
+                    {d.publishedOn}
+                  </TableCell>
+                  <TableCell>
+                    {d.edition}
+                    {' '}
+                    {d.editionYear ? `(${d.editionYear})` : ''}
+                  </TableCell>
+                  <TableCell>
+                    {d.serialNumber ? `isbn:${d.serialNumber}` : ''}
+                    {' '}
+                    {d.catalogNumber ? `catalog:${d.catalogNumber}` : ''}
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>

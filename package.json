@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:db": "ts-node src/app/api/migrations.ts",
     "start": "next start",
-    "lint": "next lint",
-    "migrate": "ts-node src/app/api/migrations.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.0",

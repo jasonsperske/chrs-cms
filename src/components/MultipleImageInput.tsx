@@ -127,9 +127,12 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                         {variant.author ? <p>by {variant.author}</p> : null}
                         <p>
                             {variant.publishedBy ? `Published by ${variant.publishedBy}` : null}
+                            {' '}
+                            {variant.publishedLocation}
                         </p>
                         <p>
-                            {variant.monthPublished}
+                            {variant.edition}{' '}{variant.editionYear > 1800 ? `(${variant.editionYear})` : ''}
+                            {variant.monthPublished}{' '}
                             {variant.yearPublished}
                         </p>
                         <p>{variant.serialNumber ? `isbn:${variant.serialNumber}` : null}
