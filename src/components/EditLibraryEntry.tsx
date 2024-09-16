@@ -22,6 +22,7 @@ export default function EditLibraryEntry({
   const [author, setAuthor] = useState(entry.author);
   const [mediaType, setMediaType] = useState(entry.mediaType);
   const [publishedBy, setPublishedBy] = useState(entry.publishedBy);
+  const [publishedOn, setPublishedOn] = useState(entry.publishedOn);
   const [publishedLocation, setPublishedLocation] = useState(
     entry.publishedLocation
   );
@@ -47,6 +48,7 @@ export default function EditLibraryEntry({
               title,
               author,
               publishedBy,
+              publishedOn,
               publishedLocation,
               edition,
               editionYear,
@@ -86,6 +88,14 @@ export default function EditLibraryEntry({
                 <Input
                   value={publishedBy}
                   onChange={bindInput(setPublishedBy)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Published On</Label>
+                <Input
+                  value={publishedOn}
+                  onChange={bindInput(setPublishedOn)}
                   className="col-span-3"
                 />
               </div>
