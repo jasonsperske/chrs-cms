@@ -1,27 +1,63 @@
-'use client'
+"use client";
+import EditLibraryEntry from "@/components/EditLibraryEntry";
 import MultipleImageInput from "@/components/MultipleImageInput";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { asLibraryEntry, LibraryEntry } from "@/lib/types/LibraryEntry";
-import { asFormData, BookVariation } from "@/lib/types/openai/BookVariation";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  asFormData as LibraryEntryAsFormData,
+  asLibraryEntry,
+  LibraryEntry,
+} from "@/lib/types/LibraryEntry";
+import {
+  asFormData as BookVariationAsFormData,
+  BookVariation,
+} from "@/lib/types/openai/BookVariation";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [data, setData] = useState<LibraryEntry[]>([])
+  const [selected, setSelected] = useState<LibraryEntry | null>(null);
+  const [data, setData] = useState<LibraryEntry[]>([]);
   useEffect(() => {
-    fetch('/api/library')
-      .then(res => res.json())
+    fetch("/api/library")
+      .then((res) => res.json())
       .then((data) => {
-        setData(data.results)
-      })
-  }, [])
+        setData(data.results);
+      });
+  }, []);
   function handleVariantSelection(variant: BookVariation): void {
-    fetch('/api/library', {
-      method: 'POST',
-      body: asFormData(variant)
-    }).then(res => res.json())
+    fetch("/api/library", {
+      method: "POST",
+      body: BookVariationAsFormData(variant),
+    })
+      .then((res) => res.json())
       .then((newEntry) => {
-        setData([asLibraryEntry(newEntry.entry.id, variant), ...data])
-      })
+        setData([asLibraryEntry(newEntry.entry.id, variant), ...data]);
+      });
+  }
+
+  function handleEntryEdit(entry: LibraryEntry): void {
+    fetch(`/api/library/${entry.id}`, {
+      method: "PUT",
+      body: LibraryEntryAsFormData(entry),
+    }).then(() => {
+      setData(data.map((d) => (d.id === entry.id ? entry : d)));
+      setSelected(null);
+    });
+  }
+
+  function handleEntryDelete(entry: LibraryEntry): void {
+    fetch(`/api/library/${entry.id}`, {
+      method: "DELETE",
+    }).then(() => {
+      setData(data.filter((d) => d.id !== entry.id));
+      setSelected(null);
+    });
   }
 
   return (
@@ -43,33 +79,34 @@ export default function Home() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((d) =>
-                <TableRow key={d.id}>
+              {data.map((d) => (
+                <TableRow key={d.id} onClick={() => setSelected(d)}>
                   <TableCell>{d.title}</TableCell>
                   <TableCell>{d.author}</TableCell>
                   <TableCell>{d.mediaType}</TableCell>
                   <TableCell>
-                    {d.publishedBy}
-                    {' '}
-                    {d.publishedLocation}
-                    {' '}
-                    {d.publishedOn}
+                    {d.publishedBy} {d.publishedLocation} {d.publishedOn}
                   </TableCell>
                   <TableCell>
-                    {d.edition}
-                    {' '}
-                    {d.editionYear ? `(${d.editionYear})` : ''}
+                    {d.edition} {d.editionYear ? `(${d.editionYear})` : ""}
                   </TableCell>
                   <TableCell>
-                    {d.serialNumber ? `isbn:${d.serialNumber}` : ''}
-                    {' '}
-                    {d.catalogNumber ? `catalog:${d.catalogNumber}` : ''}
+                    {d.serialNumber ? `isbn:${d.serialNumber}` : ""}{" "}
+                    {d.catalogNumber ? `catalog:${d.catalogNumber}` : ""}
                   </TableCell>
                 </TableRow>
-              )}
+              ))}
             </TableBody>
           </Table>
         </div>
+        {selected ? (
+          <EditLibraryEntry
+            entry={selected}
+            onEdit={handleEntryEdit}
+            onDelete={handleEntryDelete}
+            onClose={() => setSelected(null)}
+          />
+        ) : null}
       </main>
     </div>
   );
