@@ -9,20 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  asFormData as LibraryEntryAsFormData,
-  asLibraryEntry,
-  LibraryEntry,
-} from "@/lib/types/LibraryEntry";
-import {
-  asFormData as BookVariationAsFormData,
-  BookVariation,
-} from "@/lib/types/openai/BookVariation";
+import { Entry } from "@/lib/types/library/Entry";
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [selected, setSelected] = useState<LibraryEntry | null>(null);
-  const [data, setData] = useState<LibraryEntry[]>([]);
+  const [selected, setSelected] = useState<Entry | null>(null);
+  const [data, setData] = useState<Entry[]>([]);
   useEffect(() => {
     fetch("/api/library")
       .then((res) => res.json())
@@ -30,28 +22,28 @@ export default function Home() {
         setData(data.results);
       });
   }, []);
-  function handleVariantSelection(variant: BookVariation): void {
+  function handleVariantSelection(variant: Entry): void {
     fetch("/api/library", {
       method: "POST",
-      body: BookVariationAsFormData(variant),
+      body: variant.asFormData(),
     })
       .then((res) => res.json())
       .then((newEntry) => {
-        setData([asLibraryEntry(newEntry.entry.id, variant), ...data]);
+        setData([variant.withId(newEntry.entry.id), ...data]);
       });
   }
 
-  function handleEntryEdit(entry: LibraryEntry): void {
+  function handleEntryEdit(entry: Entry): void {
     fetch(`/api/library/${entry.id}`, {
       method: "PUT",
-      body: LibraryEntryAsFormData(entry),
+      body: entry.asFormData(),
     }).then(() => {
       setData(data.map((d) => (d.id === entry.id ? entry : d)));
       setSelected(null);
     });
   }
 
-  function handleEntryDelete(entry: LibraryEntry): void {
+  function handleEntryDelete(entry: Entry): void {
     fetch(`/api/library/${entry.id}`, {
       method: "DELETE",
     }).then(() => {

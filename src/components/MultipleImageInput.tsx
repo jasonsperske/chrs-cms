@@ -1,16 +1,17 @@
 "use client";
 import React, { FormEvent, useState } from "react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader } from "./ui/card";
-import { BookVariation } from "@/lib/types/openai/BookVariation";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import { Entry } from "@/lib/types/library/Entry";
+import { AnalyzeBookResponse } from "@/lib/types/openai/AnalyzedBookResponse";
 
 type Props = {
-    onSelectVariant: (variant: BookVariation) => void;
+    onSelectVariant: (variant: Entry) => void;
 };
 
 export default function MultipleImageInput({ onSelectVariant }: Props) {
     const [isProcessing, setIsProcessing] = useState(false);
-    const [variations, setVariations] = useState<BookVariation[]>([]);
+    const [variations, setVariations] = useState<Entry[]>([]);
     const [files, setFiles] = useState<File[]>([]);
 
     function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -30,19 +31,8 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                 }
                 const payload = data.response.choices[0].message.content;
                 if (payload.startsWith("```json") && payload.endsWith("```")) {
-                    const ai = JSON.parse(payload.slice(7, -3));
-                    if (ai.length > 0) {
-                        setVariations(ai);
-                    } else if (
-                        ai["interpretations"] &&
-                        ai["interpretations"].length > 0
-                    ) {
-                        setVariations(ai.interpretations);
-                    } else if (ai["title"]) {
-                        setVariations([ai]);
-                    } else {
-                        throw new Error("Failed to find any matches");
-                    }
+                    const analyzedBookResponse = new AnalyzeBookResponse(JSON.parse(payload.slice(7, -3)))
+                    setVariations(analyzedBookResponse.interpretations)
                 } else {
                     throw new Error("Failed to parse response");
                 }
@@ -129,19 +119,16 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                             {variant.publishedBy ? `Published by ${variant.publishedBy}` : null}
                             {' '}
                             {variant.publishedLocation}
+                            {' '}
+                            {variant.publishedOn ? `(${variant.publishedOn})` : null}
                         </p>
                         <p>
-                            {variant.edition}{' '}{variant.editionYear > 1800 ? `(${variant.editionYear})` : ''}
-                            {variant.monthPublished}{' '}
-                            {variant.yearPublished}
+                            {variant.edition}{' '}{variant.editionYear ? `(${variant.editionYear})` : null}
                         </p>
                         <p>{variant.serialNumber ? `isbn:${variant.serialNumber}` : null}
                         </p>
                         <p>{variant.catalogNumber ? `catalog:${variant.catalogNumber}` : null}</p>
                     </CardContent>
-                    <CardDescription>
-                        confidence {Math.floor(variant.confidence * 100)}%
-                    </CardDescription>
                 </Card>
             ))}
         </>

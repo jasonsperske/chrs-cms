@@ -1,6 +1,6 @@
-import { LibraryEntry } from "@/lib/types/LibraryEntry";
 import { NextResponse } from "next/server";
 import { apiExec, apiGetOne } from "../../database";
+import { Entry } from "@/lib/types/library/Entry";
 
 type Params = {
   params: {
@@ -9,7 +9,7 @@ type Params = {
 };
 
 export async function GET(request: Request, { params }: Params) {
-  const result = await apiGetOne<LibraryEntry>(
+  const result = await apiGetOne<Entry>(
     "SELECT * FROM library WHERE id = ?",
     [params.id]
   );

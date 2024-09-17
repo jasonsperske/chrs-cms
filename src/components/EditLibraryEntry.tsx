@@ -1,15 +1,15 @@
-import { LibraryEntry } from "@/lib/types/LibraryEntry";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { useState } from "react";
+import { Entry } from "@/lib/types/library/Entry";
 
 type Props = {
-  entry: LibraryEntry;
+  entry: Entry;
   onClose: () => void;
-  onEdit: (entry: LibraryEntry) => void;
-  onDelete: (entry: LibraryEntry) => void;
+  onEdit: (entry: Entry) => void;
+  onDelete: (entry: Entry) => void;
 };
 
 export default function EditLibraryEntry({
@@ -42,10 +42,8 @@ export default function EditLibraryEntry({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            onEdit({
+            onEdit(new Entry(title, mediaType, {
               id: entry.id,
-              mediaType,
-              title,
               author,
               publishedBy,
               publishedOn,
@@ -54,7 +52,7 @@ export default function EditLibraryEntry({
               editionYear,
               serialNumber,
               catalogNumber,
-            } as LibraryEntry);
+            }));
           }}
         >
           <div className="grid gap-4 py-4">
@@ -148,6 +146,7 @@ export default function EditLibraryEntry({
                 event.preventDefault();
                 onDelete(entry);
               }}
+              className="bg-red-700"
             >
               Delete
             </Button>

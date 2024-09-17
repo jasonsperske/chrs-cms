@@ -26,8 +26,7 @@
     "sqlite3": "^5.1.7",
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.2",
-    "tailwindcss-animate": "^1.0.7",
-    "tesseract.js": "^5.1.1"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/node": "^20",
