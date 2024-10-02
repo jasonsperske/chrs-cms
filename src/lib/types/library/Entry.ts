@@ -9,6 +9,7 @@ type OptionalFields = {
     editionYear?: string
     serialNumber?: string
     catalogNumber?: string
+    section?: string
 }
 
 export class Entry {
@@ -23,6 +24,7 @@ export class Entry {
     editionYear?: string
     serialNumber?: string
     catalogNumber?: string
+    section?: string
 
     constructor(title: string, mediaType: MediaType, rest = {} as OptionalFields) {
         this.title = title
@@ -37,6 +39,7 @@ export class Entry {
         this.editionYear = rest.editionYear
         this.serialNumber = rest.serialNumber
         this.catalogNumber = rest.catalogNumber
+        this.section = rest.section
     }
 
     asFormData() {
@@ -52,12 +55,25 @@ export class Entry {
         data.append("editionYear", this.editionYear ?? "");
         data.append("serialNumber", this.serialNumber ?? "");
         data.append("catalogNumber", this.catalogNumber ?? "");
+        data.append("section", this.section ?? "")
 
         return data
+    }
+
+    static async fromResponse(res: Response) {
+        return Entry.fromJSON(await res.json())
+    }
+
+    static fromJSON(data: any) {
+        return new Entry(data.title, data.mediaType, { ...data })
     }
 
     withId(id: number): Entry {
         this.id = id
         return this
+    }
+
+    is(that: Entry) {
+        return this.id === that.id
     }
 }

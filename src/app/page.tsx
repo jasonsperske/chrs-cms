@@ -3,33 +3,38 @@ import EditLibraryEntry from "@/components/EditLibraryEntry";
 import MultipleImageInput from "@/components/MultipleImageInput";
 import {
   Table,
-  TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableSubBody } from "@/components/ui/TableSubBody";
 import { Entry } from "@/lib/types/library/Entry";
+import { Library } from "@/lib/types/library/Library";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [selected, setSelected] = useState<Entry | null>(null);
-  const [data, setData] = useState<Entry[]>([]);
+  const [data, setData] = useState<Library | undefined>(undefined);
+  const [lastInsert, setLastInsert] = useState(Date.now())
+
   useEffect(() => {
     fetch("/api/library")
-      .then((res) => res.json())
+      .then(Library.fromResponse)
       .then((data) => {
-        setData(data.results);
+        setData(data);
       });
   }, []);
-  function handleVariantSelection(variant: Entry): void {
+
+  function handleVariantSelection(entry: Entry): void {
     fetch("/api/library", {
       method: "POST",
-      body: variant.asFormData(),
+      body: entry.asFormData(),
     })
-      .then((res) => res.json())
-      .then((newEntry) => {
-        setData([variant.withId(newEntry.entry.id), ...data]);
+      .then(Entry.fromResponse)
+      .then(entry => {
+        setData(data?.update(entry))
+        setLastInsert(Date.now())
       });
   }
 
@@ -38,7 +43,7 @@ export default function Home() {
       method: "PUT",
       body: entry.asFormData(),
     }).then(() => {
-      setData(data.map((d) => (d.id === entry.id ? entry : d)));
+      setData(data?.update(entry))
       setSelected(null);
     });
   }
@@ -47,7 +52,7 @@ export default function Home() {
     fetch(`/api/library/${entry.id}`, {
       method: "DELETE",
     }).then(() => {
-      setData(data.filter((d) => d.id !== entry.id));
+      setData(data?.remove(entry))
       setSelected(null);
     });
   }
@@ -59,7 +64,7 @@ export default function Home() {
           <MultipleImageInput onSelectVariant={handleVariantSelection} />
         </div>
         <div className="row">
-          <Table>
+          <Table className="sm:overflow-x-scroll" key={lastInsert}>
             <TableHeader>
               <TableRow>
                 <TableHead key="title">Title</TableHead>
@@ -70,25 +75,27 @@ export default function Home() {
                 <TableHead key="serialNumbers">Serial Numbers</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {data.map((d) => (
-                <TableRow key={d.id} onClick={() => setSelected(d)}>
-                  <TableCell>{d.title}</TableCell>
-                  <TableCell>{d.author}</TableCell>
-                  <TableCell>{d.mediaType}</TableCell>
-                  <TableCell>
-                    {d.publishedBy} {d.publishedLocation} {d.publishedOn}
-                  </TableCell>
-                  <TableCell>
-                    {d.edition} {d.editionYear ? `(${d.editionYear})` : ""}
-                  </TableCell>
-                  <TableCell>
-                    {d.serialNumber ? `isbn:${d.serialNumber}` : ""}{" "}
-                    {d.catalogNumber ? `catalog:${d.catalogNumber}` : ""}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            {data?.sections.map((section) => (
+              <TableSubBody cols={6} sectionName={section.name ? section.name : <i>Unknown</i>}>
+                {section.entries.map((d) => (
+                  <TableRow key={d.id} onClick={() => setSelected(d)}>
+                    <TableCell>{d.title}</TableCell>
+                    <TableCell>{d.author}</TableCell>
+                    <TableCell>{d.mediaType}</TableCell>
+                    <TableCell>
+                      {d.publishedBy} {d.publishedLocation} {d.publishedOn}
+                    </TableCell>
+                    <TableCell>
+                      {d.edition} {d.editionYear ? `(${d.editionYear})` : null}
+                    </TableCell>
+                    <TableCell>
+                      {d.serialNumber ? `isbn:${d.serialNumber}` : null}
+                      {" "}
+                      {d.catalogNumber ? `catalog:${d.catalogNumber}` : null}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableSubBody>))}
           </Table>
         </div>
         {selected ? (

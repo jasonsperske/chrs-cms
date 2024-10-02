@@ -21,25 +21,27 @@ function stripAINoise(input: string | number | undefined, leadingNoise: string[]
 
 export class AnalyzeBookResponse {
     interpretations: Entry[] = []
-    constructor(response: unknown) {
+    section: string = ""
+    constructor(response: unknown, section: string) {
+        this.section = section
         if (Array.isArray(response)) {
-            this.interpretations = AnalyzeBookResponse.parseArray(response)
+            this.interpretations = AnalyzeBookResponse.parseArray(response, section)
         } else if (typeof response === 'object' && response != null) {
             if ('interpretations' in response && Array.isArray(response['interpretations'])) {
-                this.interpretations = AnalyzeBookResponse.parseArray(response['interpretations'])
+                this.interpretations = AnalyzeBookResponse.parseArray(response['interpretations'], section)
             } else if ('title' in response && 'mediaType' in response) {
-                this.interpretations = [AnalyzeBookResponse.parse(response)].filter(notNull)
+                this.interpretations = [AnalyzeBookResponse.parse(response, section)].filter(notNull)
             } else {
                 throw new Error('Unable to parse response:\n' + JSON.stringify(response, undefined, 2))
             }
         }
     }
 
-    static parseArray(response: object[]) {
-        return response.map(AnalyzeBookResponse.parse).filter(notNull) as Entry[]
+    static parseArray(response: object[], section: string) {
+        return response.map(res => AnalyzeBookResponse.parse(res, section)).filter(notNull) as Entry[]
     }
 
-    static parse(response: object) {
+    static parse(response: object, section: string) {
         // response must contain required fields
         if (!('title' in response) || !('mediaType' in response)) {
             return null
@@ -53,6 +55,7 @@ export class AnalyzeBookResponse {
         entry.editionYear = stripAINoise(ifDefined('editionYear', response))
         entry.serialNumber = stripAINoise(ifDefined('serialNumber', response))
         entry.catalogNumber = stripAINoise(ifDefined('catalogNumber', response))
+        entry.section = section
 
         const year = ifDefined('yearPublished', response)
         const month = ifDefined('monthPublished', response)

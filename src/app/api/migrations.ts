@@ -15,7 +15,8 @@ const migrate = () => {
         editionYear TEXT,
         publishedOn TEXT,
         serialNumber TEXT,
-        catalogNumber TEXT
+        catalogNumber TEXT,
+        section TEXT
       );
     `,
             (err: Error) => {

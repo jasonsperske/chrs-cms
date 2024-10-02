@@ -4,6 +4,8 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Entry } from "@/lib/types/library/Entry";
 import { AnalyzeBookResponse } from "@/lib/types/openai/AnalyzedBookResponse";
+import { Input } from "./ui/input";
+import { bindInput } from "@/lib/utils";
 
 type Props = {
     onSelectVariant: (variant: Entry) => void;
@@ -13,6 +15,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [variations, setVariations] = useState<Entry[]>([]);
     const [files, setFiles] = useState<File[]>([]);
+    const [section, setSection] = useState("")
 
     function handleSubmit(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
@@ -31,7 +34,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                 }
                 const payload = data.response.choices[0].message.content;
                 if (payload.startsWith("```json") && payload.endsWith("```")) {
-                    const analyzedBookResponse = new AnalyzeBookResponse(JSON.parse(payload.slice(7, -3)))
+                    const analyzedBookResponse = new AnalyzeBookResponse(JSON.parse(payload.slice(7, -3)), section)
                     setVariations(analyzedBookResponse.interpretations)
                 } else {
                     throw new Error("Failed to parse response");
@@ -68,32 +71,35 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                 onSubmit={handleSubmit}
                 className="flex gap-2"
             >
-                <div
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    className="border border-dashed border-neutral-600 rounded-sm h-22 w-22 grow p-2 gap-2"
-                >
-                    <div hidden={files.length > 0}>Drop images here</div>
-                    <div hidden={!isProcessing}>Analyzing...</div>
-                    <div hidden={isProcessing} className="flex flex-wrap gap-4">
-                        {files.map((file, index) => (
-                            <div key={index} className="relative">
-                                <img
-                                    src={URL.createObjectURL(file)}
-                                    alt={file.name}
-                                    className="h-20 w-20 object-cover rounded-xl"
-                                />
-                                <Button
-                                    variant="ghost"
-                                    size={"icon"}
-                                    onClick={() => setFiles(files.filter((_, i) => i !== index))}
-                                    className="absolute top-0 right-0 p-1 bg-transparent text-white rounded-full"
-                                >
-                                    &times;
-                                </Button>
-                            </div>
-                        ))}
+                <div className="flex flex-col grow gap-2">
+                    <div
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        className="border border-dashed border-neutral-600 rounded-sm h-22 w-22 grow p-2 gap-2"
+                    >
+                        <div hidden={files.length > 0}>Drop images here</div>
+                        <div hidden={!isProcessing}>Analyzing...</div>
+                        <div hidden={isProcessing} className="flex flex-wrap gap-4">
+                            {files.map((file, index) => (
+                                <div key={index} className="relative">
+                                    <img
+                                        src={URL.createObjectURL(file)}
+                                        alt={file.name}
+                                        className="h-20 w-20 object-cover rounded-xl"
+                                    />
+                                    <Button
+                                        variant="ghost"
+                                        size={"icon"}
+                                        onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                                        className="absolute top-0 right-0 p-1 bg-transparent text-white rounded-full"
+                                    >
+                                        &times;
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
+                    <Input value={section} onChange={bindInput(setSection)} placeholder="Section" />
                 </div>
                 <Button
                     disabled={files.length == 0 || isProcessing}

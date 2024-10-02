@@ -7,10 +7,10 @@ const openai = new OpenAI({
 });
 
 export async function POST(request: Request) {
-  const files = await request.formData();
+  const data = await request.formData();
 
   const images = await Promise.all(
-    Array.from(files.values()).map((field) =>
+    Array.from(data.values()).map((field) =>
       (field as File)
         .arrayBuffer()
         .then((buffer) =>

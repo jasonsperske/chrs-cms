@@ -4,6 +4,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { Entry } from "@/lib/types/library/Entry";
+import { bindInput } from "@/lib/utils";
 
 type Props = {
   entry: Entry;
@@ -30,14 +31,11 @@ export default function EditLibraryEntry({
   const [editionYear, setEditionYear] = useState(entry.editionYear);
   const [serialNumber, setSerialNumber] = useState(entry.serialNumber);
   const [catalogNumber, setCatalogNumber] = useState(entry.catalogNumber);
+  const [section, setSection] = useState(entry.section);
 
-  function bindInput(setter: (value: string) => void) {
-    return (event: React.ChangeEvent<HTMLInputElement>) =>
-      setter(event.target.value);
-  }
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogContent className="sm:max-w-[625px] bg-white overflow-y-scroll max-h-screen">
         <DialogHeader>Edit {entry.title}</DialogHeader>
         <form
           onSubmit={(event) => {
@@ -52,11 +50,12 @@ export default function EditLibraryEntry({
               editionYear,
               serialNumber,
               catalogNumber,
+              section
             }));
           }}
         >
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 items-center gap-4">
+            <div className="grid sm:grid-cols-2 grid-cols-1 items-center gap-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Title</Label>
                 <Input
@@ -78,6 +77,14 @@ export default function EditLibraryEntry({
                 <Input
                   value={mediaType}
                   onChange={bindInput(setMediaType)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Section</Label>
+                <Input
+                  value={section}
+                  onChange={bindInput(setSection)}
                   className="col-span-3"
                 />
               </div>

@@ -22,6 +22,7 @@ export async function PUT(request: Request, { params }: Params) {
   const mediaType = body.get("mediaType");
   const title = body.get("title");
   const author = body.get("author");
+  const section = body.get("section");
   const publishedBy = body.get("publishedBy");
   const publishedOn = body.get("publishedOn");
   const publishedLocation = body.get("publishedLocation");
@@ -31,11 +32,12 @@ export async function PUT(request: Request, { params }: Params) {
   const catalogNumber = body.get("catalogNumber");
 
   const updated = await apiExec(
-    "UPDATE library SET mediaType = ?, title = ?, author = ?, publishedBy = ?, publishedOn = ?, publishedLocation = ?, edition = ?, editionYear = ?, serialNumber = ?, catalogNumber = ? WHERE id = ?",
+    "UPDATE library SET mediaType = ?, title = ?, author = ?, section = ?, publishedBy = ?, publishedOn = ?, publishedLocation = ?, edition = ?, editionYear = ?, serialNumber = ?, catalogNumber = ? WHERE id = ?",
     [
       mediaType?.valueOf(),
       title?.valueOf(),
       author?.valueOf(),
+      section?.valueOf(),
       publishedBy?.valueOf(),
       publishedOn?.valueOf(),
       publishedLocation?.valueOf(),
