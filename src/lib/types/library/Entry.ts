@@ -64,8 +64,8 @@ export class Entry {
         return Entry.fromJSON(await res.json())
     }
 
-    static fromJSON(data: any) {
-        return new Entry(data.title, data.mediaType, { ...data })
+    static fromJSON(data: Record<string, unknown>) {
+        return new Entry(data.title as string, data.mediaType as string, { ...data })
     }
 
     withId(id: number): Entry {

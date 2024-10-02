@@ -76,7 +76,7 @@ export default function Home() {
               </TableRow>
             </TableHeader>
             {data?.sections.map((section) => (
-              <TableSubBody cols={6} sectionName={section.name ? section.name : <i>Unknown</i>}>
+              <TableSubBody key={`section:${section.name}`} cols={6} sectionName={section.name ? section.name : <i>Unknown</i>}>
                 {section.entries.map((d) => (
                   <TableRow key={d.id} onClick={() => setSelected(d)}>
                     <TableCell>{d.title}</TableCell>
