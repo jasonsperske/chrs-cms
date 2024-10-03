@@ -1,4 +1,5 @@
 "use client";
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import EditLibraryEntry from "@/components/EditLibraryEntry";
 import MultipleImageInput from "@/components/MultipleImageInput";
 import {
@@ -15,6 +16,7 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [selected, setSelected] = useState<Entry | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [data, setData] = useState<Library | undefined>(undefined);
   const [lastInsert, setLastInsert] = useState(Date.now())
 
@@ -54,6 +56,7 @@ export default function Home() {
     }).then(() => {
       setData(data?.remove(entry))
       setSelected(null);
+      setConfirmDelete(false)
     });
   }
 
@@ -102,9 +105,12 @@ export default function Home() {
           <EditLibraryEntry
             entry={selected}
             onEdit={handleEntryEdit}
-            onDelete={handleEntryDelete}
+            onDelete={() => setConfirmDelete(true)}
             onClose={() => setSelected(null)}
           />
+        ) : null}
+        {(confirmDelete && selected) ? (
+          <ConfirmDeleteDialog entry={selected} onClose={() => setConfirmDelete(false)} onDelete={handleEntryDelete} />
         ) : null}
       </main>
     </div>
