@@ -43,7 +43,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
             .finally(() => setIsProcessing(false));
     }
 
-    function handleDrop(event: React.DragEvent<HTMLDivElement>): void {
+    function handleDrop(event: React.DragEvent<HTMLElement>): void {
         event.preventDefault();
         if (event.dataTransfer.items) {
             setFiles([
@@ -58,7 +58,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
         }
     }
 
-    function handleDragOver(event: React.DragEvent<HTMLDivElement>): void {
+    function handleDragOver(event: React.DragEvent<HTMLElement>): void {
         event.preventDefault();
     }
 
@@ -68,13 +68,13 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                 method="POST"
                 action="/api/openai/vision"
                 encType="multipart/form-data"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
                 onSubmit={handleSubmit}
                 className="flex gap-2"
             >
                 <div className="flex flex-col grow gap-2">
                     <div
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
                         className="border border-dashed border-neutral-600 rounded-sm h-22 w-22 grow p-2 gap-2"
                     >
                         <div hidden={files.length > 0}>Drop images here</div>
