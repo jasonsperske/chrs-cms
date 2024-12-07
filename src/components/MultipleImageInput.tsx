@@ -1,5 +1,5 @@
 "use client";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Entry } from "@/lib/types/library/Entry";
@@ -43,12 +43,13 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
             .finally(() => setIsProcessing(false));
     }
 
-    function handleDrop(event: React.DragEvent<HTMLElement>): void {
+    function handleDrop(event: Event): void {
         event.preventDefault();
-        if (event.dataTransfer.items) {
+        const dropEvent = event as DragEvent;
+        if (dropEvent.dataTransfer?.items) {
             setFiles([
                 ...files,
-                ...Array.from(event.dataTransfer.items)
+                ...Array.from(dropEvent.dataTransfer.items)
                     .filter(
                         (item) => item.kind === "file" && item.type.startsWith("image/")
                     )
@@ -58,9 +59,20 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
         }
     }
 
-    function handleDragOver(event: React.DragEvent<HTMLElement>): void {
+    function handleDragOver(event: Event): void {
         event.preventDefault();
     }
+
+    // on mount
+    useEffect(() => {
+        document.addEventListener("dragover", handleDragOver);
+        document.addEventListener("drop", handleDrop);
+        return () => {
+            // on unmount
+            document.removeEventListener("dragover", handleDragOver);
+            document.removeEventListener("drop", handleDrop);
+        };
+    }, []);    
 
     return (
         <>
@@ -68,8 +80,6 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                 method="POST"
                 action="/api/openai/vision"
                 encType="multipart/form-data"
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
                 onSubmit={handleSubmit}
                 className="flex gap-2"
             >
