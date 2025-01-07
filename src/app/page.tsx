@@ -101,6 +101,13 @@ export default function Home() {
               </TableSubBody>))}
           </Table>
         </div>
+        <div className="row">
+          <div className="text-center">
+            <p className="text-sm text-gray-500">
+              <a href="/api/export">Download XLSX</a>
+            </p>
+          </div>
+        </div>
         {selected ? (
           <EditLibraryEntry
             entry={selected}
