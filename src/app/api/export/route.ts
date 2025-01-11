@@ -18,7 +18,7 @@ function sanatizeYear(entry: Entry): number | undefined {
 }
 
 export async function GET() {
-    const library = new Library(await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, title ASC'))
+    const library = new Library(await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, mediaType ASC, id ASC'))
     const workbook = await XlsxPopulate.fromBlankAsync();
     library.sections.forEach((section, i) => {
         let worksheet;
@@ -55,6 +55,7 @@ export async function GET() {
         worksheet.column("K").width(10);
         // freeze top row
         worksheet.freezePanes(0, 1);
+        let lastMedia = "";
         section.entries.forEach((entry, j) => {
             worksheet.cell(`A${j + 2}`).value(entry.mediaType);
             worksheet.cell(`B${j + 2}`).value(entry.author).style('wrapText', true);
@@ -66,8 +67,14 @@ export async function GET() {
             worksheet.cell(`G${j + 2}`).value(entry.edition).style('wrapText', true);
             worksheet.cell(`H${j + 2}`).value(entry.serialNumber);
             worksheet.cell(`I${j + 2}`).value(entry.catalogNumber);
-            const fill = j % 2 ? "c0e6f5" : "83cceb";
-            worksheet.range(`A${j + 2}:K${j + 2}`).style({ fill, border: true, fontSize: 12 });
+            const style = { verticalAlignment: 'top', border: true, fontSize: 12 } as Record<string, unknown>;
+            if(!lastMedia) {
+                lastMedia = entry.mediaType;
+            } else if(entry.mediaType !== lastMedia) {
+                lastMedia = entry.mediaType;
+                style['topBorder'] = 'double';
+            }
+            worksheet.range(`A${j + 2}:K${j + 2}`).style(style);
         });
     });
 
