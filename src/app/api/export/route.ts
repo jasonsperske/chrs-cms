@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
-import { apiGet, apiPost } from "../database";
+import { apiGet } from "../database";
 import { Entry } from "@/lib/types/library/Entry";
 import { Library } from "@/lib/types/library/Library";
 
