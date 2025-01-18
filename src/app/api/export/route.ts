@@ -17,6 +17,8 @@ function sanatizeYear(entry: Entry): number | undefined {
     return years.length ? Math.max(...years) : undefined;
 }
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
     const library = new Library(await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, mediaType ASC, id ASC'))
     const workbook = await XlsxPopulate.fromBlankAsync();
