@@ -29,6 +29,8 @@ export class AnalyzeBookResponse {
         } else if (typeof response === 'object' && response != null) {
             if ('interpretations' in response && Array.isArray(response['interpretations'])) {
                 this.interpretations = AnalyzeBookResponse.parseArray(response['interpretations'], section)
+            } else if('mediaInterpretations' in response && Array.isArray(response['mediaInterpretations'])) {
+                this.interpretations = AnalyzeBookResponse.parseArray(response['mediaInterpretations'], section)
             } else if ('title' in response && 'mediaType' in response) {
                 this.interpretations = [AnalyzeBookResponse.parse(response, section)].filter(notNull)
             } else {
