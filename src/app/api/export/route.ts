@@ -4,8 +4,10 @@ import { apiGet } from "../database";
 import { Entry } from "@/lib/types/library/Entry";
 import { Library } from "@/lib/types/library/Library";
 
+const MAX_SHEET_NAME_LENGTH = 31;
+
 function sanatizeName(name: string): string {
-    return name?.replace(/[^a-z0-9\s]/gi, '-') ?? "Unknown";
+    return name?.replace(/[^a-z0-9\s]/gi, '-').substring(0, MAX_SHEET_NAME_LENGTH) ?? "Unknown";
 }
 
 function sanatizeYear(entry: Entry): number | undefined {
@@ -70,9 +72,9 @@ export async function GET() {
             worksheet.cell(`H${j + 2}`).value(entry.serialNumber);
             worksheet.cell(`I${j + 2}`).value(entry.catalogNumber);
             const style = { verticalAlignment: 'top', border: true, fontSize: 12 } as Record<string, unknown>;
-            if(!lastMedia) {
+            if (!lastMedia) {
                 lastMedia = entry.mediaType;
-            } else if(entry.mediaType !== lastMedia) {
+            } else if (entry.mediaType !== lastMedia) {
                 lastMedia = entry.mediaType;
                 style['topBorder'] = 'double';
             }
