@@ -35,8 +35,8 @@ export default function EditLibraryEntry({
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[625px] bg-white overflow-y-scroll max-h-screen">
-        <DialogHeader>Edit {entry.title}</DialogHeader>
+      <DialogContent className="sm:max-w-[625px] bg-white overflow-y-auto max-h-[90vh] p-4 sm:p-6">
+        <DialogHeader className="bg-white pb-4">Edit {entry.title}</DialogHeader>
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -146,7 +146,7 @@ export default function EditLibraryEntry({
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="bg-white pt-4 border-t">
             <Button type="submit">Save</Button>
             <Button
               onClick={(event) => {
