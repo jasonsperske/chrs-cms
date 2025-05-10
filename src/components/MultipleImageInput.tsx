@@ -1,5 +1,5 @@
 "use client";
-import React, { FormEvent, useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Entry } from "@/lib/types/library/Entry";
@@ -16,6 +16,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
     const [variations, setVariations] = useState<Entry[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [section, setSection] = useState("")
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     function handleSubmit(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
@@ -74,6 +75,17 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
         };
     }, []);    
 
+    function handleClick() {
+        fileInputRef.current?.click();
+    }
+
+    function handleFileSelect(event: React.ChangeEvent<HTMLInputElement>) {
+        const selectedFiles = Array.from(event.target.files || []);
+        setFiles([...files, ...selectedFiles]);
+        // Reset the input value so the same file can be selected again
+        event.target.value = '';
+    }
+
     return (
         <>
             <form
@@ -85,9 +97,18 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
             >
                 <div className="flex flex-col grow gap-2">
                     <div
-                        className="border border-dashed border-neutral-600 rounded-sm h-22 w-22 grow p-2 gap-2"
+                        className="border border-dashed border-neutral-600 rounded-sm h-22 w-22 grow p-2 gap-2 cursor-pointer"
+                        onClick={handleClick}
                     >
-                        <div hidden={files.length > 0}>Drop images here</div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileSelect}
+                            multiple
+                            accept="image/*"
+                            className="hidden"
+                        />
+                        <div hidden={files.length > 0}>Drop images here or click to select</div>
                         <div hidden={!isProcessing}>Analyzing...</div>
                         <div hidden={isProcessing} className="flex flex-wrap gap-4">
                             {files.map((file, index) => (
@@ -100,7 +121,10 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                                     <Button
                                         variant="ghost"
                                         size={"icon"}
-                                        onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setFiles(files.filter((_, i) => i !== index));
+                                        }}
                                         className="absolute top-0 right-0 p-1 bg-transparent text-white rounded-full"
                                     >
                                         &times;
