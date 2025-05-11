@@ -18,16 +18,63 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
     const [section, setSection] = useState("")
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    async function resizeImage(file: File): Promise<File> {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate new dimensions while maintaining aspect ratio
+                if (width > height) {
+                    if (width > 1024) {
+                        height = Math.round((height * 1024) / width);
+                        width = 1024;
+                    }
+                } else {
+                    if (height > 1024) {
+                        width = Math.round((width * 1024) / height);
+                        height = 1024;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const resizedFile = new File([blob], file.name, {
+                            type: file.type,
+                            lastModified: file.lastModified,
+                        });
+                        resolve(resizedFile);
+                    } else {
+                        resolve(file);
+                    }
+                }, file.type);
+            };
+        });
+    }
+
     function handleSubmit(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
         setIsProcessing(true);
         setVariations([]);
-        const formData = new FormData();
-        files.forEach((file) => formData.append("files", file));
-        fetch("/api/openai/vision", {
-            method: "POST",
-            body: formData,
-        })
+
+        // Process all images before submitting
+        Promise.all(files.map(resizeImage))
+            .then(resizedFiles => {
+                const formData = new FormData();
+                resizedFiles.forEach((file) => formData.append("files", file));
+                return fetch("/api/openai/vision", {
+                    method: "POST",
+                    body: formData,
+                });
+            })
             .then((response) => response.json())
             .then((data) => {
                 if (!data.success) {
@@ -73,7 +120,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
             document.removeEventListener("dragover", handleDragOver);
             document.removeEventListener("drop", handleDrop);
         };
-    }, []);    
+    }, []);
 
     function handleClick() {
         fileInputRef.current?.click();
