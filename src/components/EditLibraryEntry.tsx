@@ -33,11 +33,17 @@ export default function EditLibraryEntry({
   const [catalogNumber, setCatalogNumber] = useState(entry.catalogNumber);
   const [section, setSection] = useState(entry.section);
 
+  const isNewEntry = !entry.id;
+
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[625px] bg-white overflow-y-auto max-h-[90vh] p-4 sm:p-6">
-        <DialogHeader className="bg-white pb-4">Edit {entry.title}</DialogHeader>
+        <DialogHeader className="bg-white pb-4">
+          {isNewEntry ? "Add New Entry" : `Edit ${entry.title}`}
+        </DialogHeader>
         <form
+          method={isNewEntry ? "POST" : "PUT"}
+          action={isNewEntry ? "/api/library" : `/api/library/${entry.id}`}
           onSubmit={(event) => {
             event.preventDefault();
             onEdit(new Entry(title, mediaType, {
@@ -62,6 +68,7 @@ export default function EditLibraryEntry({
                   value={title}
                   onChange={bindInput(setTitle)}
                   className="col-span-3"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -78,6 +85,7 @@ export default function EditLibraryEntry({
                   value={mediaType}
                   onChange={bindInput(setMediaType)}
                   className="col-span-3"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -147,16 +155,18 @@ export default function EditLibraryEntry({
             </div>
           </div>
           <DialogFooter className="bg-white pt-4 border-t">
-            <Button type="submit">Save</Button>
-            <Button
-              onClick={(event) => {
-                event.preventDefault();
-                onDelete(entry);
-              }}
-              className="bg-red-700"
-            >
-              Delete
-            </Button>
+            <Button type="submit">{isNewEntry ? "Add" : "Save"}</Button>
+            {!isNewEntry && (
+              <Button
+                onClick={(event) => {
+                  event.preventDefault();
+                  onDelete(entry);
+                }}
+                className="bg-red-700"
+              >
+                Delete
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

@@ -9,13 +9,16 @@ import { bindInput } from "@/lib/utils";
 
 type Props = {
     onSelectVariant: (variant: Entry) => void;
+    onAddManually: (variant?: Entry) => void;
 };
 
-export default function MultipleImageInput({ onSelectVariant }: Props) {
+export default function MultipleImageInput({ onSelectVariant, onAddManually }: Props) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [variations, setVariations] = useState<Entry[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [section, setSection] = useState("")
+    const [isDragging, setIsDragging] = useState(false);
+    const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     async function resizeImage(file: File): Promise<File> {
@@ -69,11 +72,13 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
         Promise.all(files.map(resizeImage))
             .then(resizedFiles => {
                 const formData = new FormData();
-                resizedFiles.forEach((file) => formData.append("files", file));
+                for (let file of resizedFiles) {
+                    formData.append("files", file);   
+                }
                 return fetch("/api/openai/vision", {
                     method: "POST",
                     body: formData,
-                });
+                }); 
             })
             .then((response) => response.json())
             .then((data) => {
@@ -140,7 +145,7 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                 action="/api/openai/vision"
                 encType="multipart/form-data"
                 onSubmit={handleSubmit}
-                className="flex gap-2"
+                className="flex gap-2 pb-2"
             >
                 <div className="flex flex-col grow gap-2">
                     <div
@@ -182,12 +187,14 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                     </div>
                     <Input value={section} onChange={bindInput(setSection)} placeholder="Section" />
                 </div>
-                <Button
-                    disabled={files.length == 0 || isProcessing}
-                    className="flex-none"
-                >
-                    Submit
-                </Button>
+                <div className="flex flex-col gap-2">
+                    <Button
+                        disabled={files.length == 0 || isProcessing}
+                        className="flex-none"
+                    >
+                        Submit
+                    </Button>
+                </div>
             </form>
             {variations.map((variant, index) => (
                 <Card
@@ -198,6 +205,26 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                         setFiles([]);
                         setVariations([]);
                     }}
+                    draggable
+                    onDragStart={(e) => {
+                        setIsDragging(true);
+                        e.dataTransfer.setData('application/json', JSON.stringify(variant));
+                        
+                        // Create a clone of the card for the drag image
+                        const dragImage = e.currentTarget.cloneNode(true) as HTMLElement;
+                        dragImage.style.opacity = '0.5';
+                        dragImage.style.position = 'absolute';
+                        dragImage.style.top = '-1000px';
+                        document.body.appendChild(dragImage);
+                        
+                        e.dataTransfer.setDragImage(dragImage, 0, 0);
+                        
+                        // Clean up the clone after drag starts
+                        requestAnimationFrame(() => {
+                            document.body.removeChild(dragImage);
+                        });
+                    }}
+                    onDragEnd={() => setIsDragging(false)}
                 >
                     <CardHeader>{variant.title} ({variant.mediaType})</CardHeader>
                     <CardContent>
@@ -218,6 +245,27 @@ export default function MultipleImageInput({ onSelectVariant }: Props) {
                     </CardContent>
                 </Card>
             ))}
+            <Button
+                variant="outline"
+                onClick={() => onAddManually(new Entry("New Entry", "book", { section }))}
+                className={`flex-none transition-colors ${isDragOver ? 'bg-neutral-100 border-neutral-400' : 'hover:bg-neutral-100 hover:border-neutral-400'}`}
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(true);
+                }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragOver(false);
+                    const variantData = e.dataTransfer.getData('application/json');
+                    if (variantData) {
+                        const variant = JSON.parse(variantData) as Entry;
+                        onAddManually(variant);
+                    }
+                }}
+            >
+                {isDragging ? "Edit Manually" : "Add Manually"}
+            </Button>
         </>
     );
 }

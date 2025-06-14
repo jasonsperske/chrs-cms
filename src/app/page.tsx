@@ -40,14 +40,24 @@ export default function Home() {
       });
   }
 
+  function handleAddManually(variant?: Entry): void {
+    setSelected(variant || new Entry("New Entry", "book"));
+  }
+
   function handleEntryEdit(entry: Entry): void {
-    fetch(`/api/library/${entry.id}`, {
-      method: "PUT",
+    const url = entry.id ? `/api/library/${entry.id}` : "/api/library";
+    const method = entry.id ? "PUT" : "POST";
+
+    fetch(url, {
+      method,
       body: entry.asFormData(),
-    }).then(() => {
-      setData(data?.update(entry))
-      setSelected(null);
-    });
+    })
+      .then(Entry.fromResponse)
+      .then(updatedEntry => {
+        setData(data?.update(updatedEntry));
+        setSelected(null);
+        setLastInsert(Date.now());
+      });
   }
 
   function handleEntryDelete(entry: Entry): void {
@@ -64,7 +74,10 @@ export default function Home() {
     <div className="p-8 pb-20 font-[family-name:var(--font-geist-sans)]">
       <main>
         <div className="row">
-          <MultipleImageInput onSelectVariant={handleVariantSelection} />
+          <MultipleImageInput
+            onSelectVariant={handleVariantSelection}
+            onAddManually={handleAddManually}
+          />
         </div>
         <div className="row">
           <Table className="sm:overflow-x-scroll" key={lastInsert}>
@@ -81,7 +94,11 @@ export default function Home() {
             {data?.sections.map((section) => (
               <TableSubBody key={`section:${section.name}`} cols={6} sectionName={section.name ? section.name : <i>Unknown</i>}>
                 {section.entries.map((d) => (
-                  <TableRow key={d.id} onClick={() => setSelected(d)}>
+                  <TableRow 
+                    key={`${d.id || d.title}`} 
+                    data-id={d.id} 
+                    onClick={() => setSelected(d)}
+                  >
                     <TableCell>{d.title}</TableCell>
                     <TableCell>{d.author}</TableCell>
                     <TableCell>{d.mediaType}</TableCell>

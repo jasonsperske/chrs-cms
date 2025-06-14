@@ -7,7 +7,7 @@ export class Library {
     constructor(entries: Entry[]) {
         this.sections = []
         let currentSection: Section | undefined = undefined
-        entries.forEach(result => {
+        for (let result of entries) {
             if (!currentSection) {
                 currentSection = new Section(result.section)
             } else if (!currentSection.shouldInclude(result)) {
@@ -15,7 +15,7 @@ export class Library {
                 currentSection = new Section(result.section)
             }
             currentSection.entries.push(result)
-        })
+        }
         if (currentSection) {
             this.sections.push(currentSection)
         }
@@ -28,20 +28,50 @@ export class Library {
 
     update(entry: Entry) {
         let isNew = true
-        this.sections.forEach(section => {
-            if (isNew && section.includes(entry.id)) {
+        let oldSection: Section | undefined = undefined
+
+        // First pass: find and update the entry in its current section
+        for (const section of this.sections) {
+            if (section.includes(entry.id)) {
+                oldSection = section
                 section.update(entry)
                 isNew = false
             }
-        })
-
-        if (isNew) {
-            if (this.sections.length == 0 || this.sections[0].name !== "New Entries") {
-                const newSection = new Section("New Entries")
-                this.sections = [newSection, ...this.sections]
-            }
-            this.sections[0].entries.unshift(entry)
         }
+        // If the entry's section has changed, move it to the new section
+        if (!isNew && oldSection && oldSection.name !== (entry.section || "")) {
+            // Remove from old section
+            oldSection.remove(entry.id)
+            
+            // Find or create the new section
+            let newSection = this.sections.find(s => s.name === (entry.section || ""))
+            if (!newSection) {
+                newSection = new Section(entry.section)
+                this.sections.push(newSection)
+            }
+            
+            // Add to new section
+            newSection.entries.push(entry)
+        }
+
+        // Handle new entries
+        if (isNew) {
+            // Find or create the "New Entries" section
+            let newEntriesSection = this.sections.find(s => s.name === "New Entries")
+            if (!newEntriesSection) {
+                newEntriesSection = new Section("New Entries")
+                this.sections.unshift(newEntriesSection) // Add at the beginning
+            }
+            newEntriesSection.entries.unshift(entry) // Add at the beginning of entries
+        }
+
+        // Sort sections by name, but keep "New Entries" at the top
+        this.sections.sort((a, b) => {
+            if (a.name === "New Entries") return -1;
+            if (b.name === "New Entries") return 1;
+            return a.name.localeCompare(b.name);
+        });
+        
         return this
     }
 
