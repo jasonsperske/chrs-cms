@@ -4,9 +4,23 @@ import { Entry } from "@/lib/types/library/Entry";
 
 type Params = {
   params: {
-    id: number;
+    id: string;
   };
 };
+
+type EntryGetResponse = {
+  success: boolean;
+  result: Entry;
+};
+
+type EntryDeletedResponse = {
+  success: boolean;
+  deleted: number;
+};
+
+type EntryPutResponse = {
+  success: boolean
+} & Omit<Entry, "asFormData" | "withId" | "is">
 
 export async function GET(request: Request, { params }: Params) {
   const result = await apiGetOne<Entry>(
@@ -14,7 +28,7 @@ export async function GET(request: Request, { params }: Params) {
     [params.id]
   );
 
-  return NextResponse.json({ success: true, result });
+  return NextResponse.json<EntryGetResponse>({ success: true, result });
 }
 
 export async function PUT(request: Request, { params }: Params) {
@@ -49,7 +63,21 @@ export async function PUT(request: Request, { params }: Params) {
     ]
   );
 
-  return NextResponse.json({ success: true, updated });
+  return NextResponse.json<EntryPutResponse>({
+    success: updated === 1,
+    id: parseInt(params.id, 10),
+    mediaType: mediaType?.valueOf() as string,
+    title: title?.valueOf() as string,
+    author: author?.valueOf() as string,
+    section: section?.valueOf() as string,
+    publishedBy: publishedBy?.valueOf() as string,
+    publishedOn: publishedOn?.valueOf() as string,
+    publishedLocation: publishedLocation?.valueOf() as string,
+    edition: edition?.valueOf() as string,
+    editionYear: editionYear?.valueOf() as string,
+    serialNumber: serialNumber?.valueOf() as string,
+    catalogNumber: catalogNumber?.valueOf() as string
+  });
 }
 
 export async function DELETE(request: Request, { params }: Params) {
@@ -57,5 +85,5 @@ export async function DELETE(request: Request, { params }: Params) {
     params.id,
   ]);
 
-  return NextResponse.json({ success: true, deleted });
+  return NextResponse.json<EntryDeletedResponse>({ success: true, deleted });
 }

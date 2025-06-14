@@ -95,7 +95,7 @@ export default function Home() {
               <TableSubBody key={`section:${section.name}`} cols={6} sectionName={section.name ? section.name : <i>Unknown</i>}>
                 {section.entries.map((d) => (
                   <TableRow 
-                    key={`${d.id || d.title}-${lastInsert}`} 
+                    key={`${d.id || d.title}`} 
                     data-id={d.id} 
                     onClick={() => setSelected(d)}
                   >
