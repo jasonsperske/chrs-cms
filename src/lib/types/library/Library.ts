@@ -7,7 +7,7 @@ export class Library {
     constructor(entries: Entry[]) {
         this.sections = []
         let currentSection: Section | undefined = undefined
-        for (let result of entries) {
+        for (const result of entries) {
             if (!currentSection) {
                 currentSection = new Section(result.section)
             } else if (!currentSection.shouldInclude(result)) {

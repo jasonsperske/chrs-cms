@@ -72,7 +72,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually }: P
         Promise.all(files.map(resizeImage))
             .then(resizedFiles => {
                 const formData = new FormData();
-                for (let file of resizedFiles) {
+                for (const file of resizedFiles) {
                     formData.append("files", file);   
                 }
                 return fetch("/api/openai/vision", {
@@ -125,7 +125,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually }: P
             document.removeEventListener("dragover", handleDragOver);
             document.removeEventListener("drop", handleDrop);
         };
-    }, []);
+    }, [handleDragOver, handleDrop]);
 
     function handleClick() {
         fileInputRef.current?.click();
