@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { apiExec, apiGetOne } from "../../database";
 import { Entry } from "@/lib/types/library/Entry";
+import { formBody } from "@/lib/utils";
 
 type Params = {
   params: {
@@ -32,33 +33,33 @@ export async function GET(request: Request, { params }: Params) {
 }
 
 export async function PUT(request: Request, { params }: Params) {
-  const body = await request.formData();
-  const mediaType = body.get("mediaType");
-  const title = body.get("title");
-  const author = body.get("author");
-  const section = body.get("section");
-  const publishedBy = body.get("publishedBy");
-  const publishedOn = body.get("publishedOn");
-  const publishedLocation = body.get("publishedLocation");
-  const edition = body.get("edition");
-  const editionYear = body.get("editionYear");
-  const serialNumber = body.get("serialNumber");
-  const catalogNumber = body.get("catalogNumber");
+  const body = formBody(await request.formData());
+  const mediaType = body("mediaType");
+  const title = body("title");
+  const author = body("author");
+  const section = body("section");
+  const publishedBy = body("publishedBy");
+  const publishedOn = body("publishedOn");
+  const publishedLocation = body("publishedLocation");
+  const edition = body("edition");
+  const editionYear = body("editionYear");
+  const serialNumber = body("serialNumber");
+  const catalogNumber = body("catalogNumber");
 
   const updated = await apiExec(
     "UPDATE library SET mediaType = ?, title = ?, author = ?, section = ?, publishedBy = ?, publishedOn = ?, publishedLocation = ?, edition = ?, editionYear = ?, serialNumber = ?, catalogNumber = ? WHERE id = ?",
     [
-      mediaType?.valueOf(),
-      title?.valueOf(),
-      author?.valueOf(),
-      section?.valueOf(),
-      publishedBy?.valueOf(),
-      publishedOn?.valueOf(),
-      publishedLocation?.valueOf(),
-      edition?.valueOf(),
-      editionYear?.valueOf(),
-      serialNumber?.valueOf(),
-      catalogNumber?.valueOf(),
+      mediaType,
+      title,
+      author,
+      section,
+      publishedBy,
+      publishedOn,
+      publishedLocation,
+      edition,
+      editionYear,
+      serialNumber,
+      catalogNumber,
       params.id,
     ]
   );
@@ -66,17 +67,17 @@ export async function PUT(request: Request, { params }: Params) {
   return NextResponse.json<EntryPutResponse>({
     success: updated === 1,
     id: parseInt(params.id, 10),
-    mediaType: mediaType?.valueOf() as string,
-    title: title?.valueOf() as string,
-    author: author?.valueOf() as string,
-    section: section?.valueOf() as string,
-    publishedBy: publishedBy?.valueOf() as string,
-    publishedOn: publishedOn?.valueOf() as string,
-    publishedLocation: publishedLocation?.valueOf() as string,
-    edition: edition?.valueOf() as string,
-    editionYear: editionYear?.valueOf() as string,
-    serialNumber: serialNumber?.valueOf() as string,
-    catalogNumber: catalogNumber?.valueOf() as string
+    mediaType,
+    title,
+    author,
+    section,
+    publishedBy,
+    publishedOn,
+    publishedLocation,
+    edition,
+    editionYear,
+    serialNumber,
+    catalogNumber
   });
 }
 

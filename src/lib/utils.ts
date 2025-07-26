@@ -18,3 +18,11 @@ export function bindInput(setter: (value: string) => void) {
   return (event: React.ChangeEvent<HTMLInputElement>) =>
     setter(event.target.value);
 }
+
+export function formBody(body: FormData): (field: string) => string {
+  return (field: string) => {
+    const value = body.get(field);
+    if (typeof value === "string") return value.trim();
+    return "";
+  };
+}
