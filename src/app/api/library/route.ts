@@ -4,7 +4,7 @@ import { Entry } from "@/lib/types/library/Entry";
 import { formBody } from "@/lib/utils";
 
 export async function GET() {
-    const results = await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, title ASC')
+    const results = await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, mediaType ASC, title ASC')
     return NextResponse.json({ success: true, results })
 }
 
