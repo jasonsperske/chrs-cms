@@ -21,8 +21,32 @@ function sanatizeYear(entry: Entry): number | undefined {
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
-    const library = new Library(await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, mediaType ASC, id ASC'))
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url)
+    const sectionParam = searchParams.get("section")
+
+    let query = 'SELECT * FROM library'
+    const params: unknown[] = []
+    let librarySection: string | undefined = undefined
+    let filenameSection: string | undefined = undefined
+
+    if (sectionParam !== null) {
+        const trimmed = sectionParam.trim()
+        if (trimmed.length === 0) {
+            query += " WHERE section IS NULL OR TRIM(section) = ''"
+            librarySection = ""
+            filenameSection = "Unknown"
+        } else {
+            query += ' WHERE section = ?'
+            params.push(sectionParam)
+            librarySection = sectionParam
+            filenameSection = sectionParam
+        }
+    }
+
+    query += ' ORDER BY section ASC, mediaType ASC, id ASC'
+
+    const library = new Library(await apiGet<Entry>(query, params), librarySection)
     const workbook = await XlsxPopulate.fromBlankAsync();
     library.sections.forEach((section, i) => {
         let worksheet;
@@ -82,11 +106,14 @@ export async function GET() {
         });
     });
 
+    const timestamp = new Date().toISOString()
+    const filenameBase = filenameSection ? `library-${sanatizeName(filenameSection)}` : 'library'
+
     return new NextResponse(await workbook.outputAsync(), {
         status: 200,
         headers: {
             "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "Content-Disposition": `attachment; filename=library-${(new Date().toISOString())}.xlsx`
+            "Content-Disposition": `attachment; filename=${filenameBase}-${timestamp}.xlsx`
         }
     });
 }

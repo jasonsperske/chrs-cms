@@ -4,10 +4,15 @@ import { Section } from "./Section";
 export class Library {
     sections: Section[]
 
-    constructor(entries: Entry[]) {
+    constructor(entries: Entry[], section?: string) {
         this.sections = []
+
+        const sourceEntries = section === undefined
+            ? entries
+            : entries.filter((entry) => (entry.section || "") === section)
+
         let currentSection: Section | undefined = undefined
-        for (const result of entries) {
+        for (const result of sourceEntries) {
             if (!currentSection) {
                 currentSection = new Section(result.section)
             } else if (!currentSection.shouldInclude(result)) {
@@ -21,9 +26,9 @@ export class Library {
         }
     }
 
-    static async fromResponse(res: Response): Promise<Library> {
+    static async fromResponse(res: Response, section?: string): Promise<Library> {
         const data = await res.json()
-        return new Library(data.results.map(Entry.fromJSON))
+        return new Library(data.results.map(Entry.fromJSON), section)
     }
 
     update(entry: Entry) {

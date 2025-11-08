@@ -10,16 +10,23 @@ import { bindInput } from "@/lib/utils";
 type Props = {
     onSelectVariant: (variant: Entry) => void;
     onAddManually: (variant?: Entry) => void;
+    defaultSection?: string;
 };
 
-export default function MultipleImageInput({ onSelectVariant, onAddManually }: Props) {
+export default function MultipleImageInput({ onSelectVariant, onAddManually, defaultSection }: Props) {
     const [isProcessing, setIsProcessing] = useState(false);
     const [variations, setVariations] = useState<Entry[]>([]);
     const [files, setFiles] = useState<File[]>([]);
-    const [section, setSection] = useState("")
+    const [section, setSection] = useState(() => defaultSection ?? "")
     const [isDragging, setIsDragging] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (defaultSection !== undefined) {
+            setSection(defaultSection)
+        }
+    }, [defaultSection])
 
     async function resizeImage(file: File): Promise<File> {
         return new Promise((resolve) => {

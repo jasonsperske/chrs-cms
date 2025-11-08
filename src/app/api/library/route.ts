@@ -3,8 +3,29 @@ import { apiGet, apiPost } from "../database";
 import { Entry } from "@/lib/types/library/Entry";
 import { formBody } from "@/lib/utils";
 
-export async function GET() {
-    const results = await apiGet<Entry>('SELECT * FROM library ORDER BY section ASC, mediaType ASC, title ASC')
+export async function GET(request: Request) {
+    const { searchParams } = new URL(request.url)
+    const sectionParam = searchParams.get("section")
+
+    const baseQuery = "SELECT * FROM library"
+    const orderBy = " ORDER BY section ASC, mediaType ASC, title ASC"
+
+    let query = baseQuery
+    const params: unknown[] = []
+
+    if (sectionParam !== null) {
+        const trimmed = sectionParam.trim()
+        if (trimmed.length === 0) {
+            query += " WHERE section IS NULL OR TRIM(section) = ''"
+        } else {
+            query += " WHERE section = ?"
+            params.push(sectionParam)
+        }
+    }
+
+    query += orderBy
+
+    const results = await apiGet<Entry>(query, params)
     return NextResponse.json({ success: true, results })
 }
 
