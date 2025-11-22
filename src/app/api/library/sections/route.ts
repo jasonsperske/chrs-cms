@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { apiGet } from "../../database";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const results = await apiGet<{ section: string | null }>(
     "SELECT DISTINCT COALESCE(TRIM(section), '') AS section FROM library ORDER BY section ASC"

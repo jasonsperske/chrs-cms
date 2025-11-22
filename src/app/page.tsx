@@ -23,7 +23,7 @@ export default function Home() {
   const [unknownEntries, setUnknownEntries] = useState<Entry[]>([]);
 
   const refreshSections = useCallback(() => {
-    fetch("/api/library/sections")
+    fetch("/api/library/sections", { cache: 'no-store' })
       .then((res) => res.json())
       .then((payload) => {
         if (payload?.success && Array.isArray(payload.sections)) {
@@ -36,7 +36,7 @@ export default function Home() {
   }, []);
 
   const refreshUnknownEntries = useCallback(() => {
-    fetch("/api/library?section=")
+    fetch("/api/library?section=", { cache: 'no-store' })
       .then((res) => Library.fromResponse(res, ""))
       .then((library) => {
         const entries = library.sections.flatMap((section) => section.entries);

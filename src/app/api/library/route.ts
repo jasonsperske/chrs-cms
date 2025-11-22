@@ -3,6 +3,8 @@ import { apiGet, apiPost } from "../database";
 import { Entry } from "@/lib/types/library/Entry";
 import { formBody } from "@/lib/utils";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const sectionParam = searchParams.get("section")
