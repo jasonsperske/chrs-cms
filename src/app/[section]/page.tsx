@@ -3,12 +3,12 @@
 import SectionPageView from "@/components/SectionPageView";
 
 type SectionPageProps = {
-  params: {
+  params: Promise<{
     section: string;
-  };
+  }>;
 };
 
-export default function SectionPage({ params }: SectionPageProps) {
-  const activeSection = decodeURIComponent(params.section);
+export default async function SectionPage({ params }: SectionPageProps) {
+  const activeSection = decodeURIComponent((await params).section);
   return <SectionPageView section={activeSection} />;
 }

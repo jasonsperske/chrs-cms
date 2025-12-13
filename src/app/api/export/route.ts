@@ -53,6 +53,9 @@ export async function GET(request: Request) {
         if (!section.name) {
             worksheet = workbook.sheet(0);
             worksheet.name("Unknown");
+        } else if (sectionParam) {
+            worksheet = workbook.sheet(0);
+            worksheet.name(sanatizeName(section.name));
         } else {
             worksheet = workbook.addSheet(sanatizeName(section.name), i);
         }
