@@ -24,15 +24,17 @@ type EntryPutResponse = {
 } & Omit<Entry, "asFormData" | "withId" | "is">
 
 export async function GET(request: Request, { params }: Params) {
+  const { id } = await params;
   const result = await apiGetOne<Entry>(
     "SELECT * FROM library WHERE id = ?",
-    [(await params).id]
+    [id]
   );
 
   return NextResponse.json<EntryGetResponse>({ success: true, result });
 }
 
 export async function PUT(request: Request, { params }: Params) {
+  const { id } = await params;
   const body = formBody(await request.formData());
   const mediaType = body("mediaType");
   const title = body("title");
@@ -60,13 +62,13 @@ export async function PUT(request: Request, { params }: Params) {
       editionYear,
       serialNumber,
       catalogNumber,
-      (await params).id,
+      id,
     ]
   );
 
   return NextResponse.json<EntryPutResponse>({
     success: updated === 1,
-    id: parseInt((await params).id, 10),
+    id: parseInt(id, 10),
     mediaType,
     title,
     author,
@@ -82,8 +84,9 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 export async function DELETE(request: Request, { params }: Params) {
+  const { id } = await params;
   const deleted = await apiExec("DELETE FROM library WHERE id = ?", [
-    (await params).id,
+    id,
   ]);
 
   return NextResponse.json<EntryDeletedResponse>({ success: true, deleted });
