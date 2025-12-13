@@ -6,11 +6,11 @@ import { Library } from "@/lib/types/library/Library";
 
 const MAX_SHEET_NAME_LENGTH = 31;
 
-function sanatizeName(name: string): string {
+function sanitizeName(name: string): string {
     return name?.replace(/[^a-z0-9\s]/gi, '-').substring(0, MAX_SHEET_NAME_LENGTH) ?? "Unknown";
 }
 
-function sanatizeYear(entry: Entry): number | undefined {
+function sanitizeYear(entry: Entry): number | undefined {
     const years = [entry.publishedOn, entry.editionYear]
         .filter(Boolean)
         .map((date) => /(\d{4})/.exec(date ?? "")?.[1])
@@ -55,9 +55,9 @@ export async function GET(request: Request) {
             worksheet.name("Unknown");
         } else if (sectionParam) {
             worksheet = workbook.sheet(0);
-            worksheet.name(sanatizeName(section.name));
+            worksheet.name(sanitizeName(section.name));
         } else {
-            worksheet = workbook.addSheet(sanatizeName(section.name), i);
+            worksheet = workbook.addSheet(sanitizeName(section.name), i);
         }
         worksheet.cell("A1").value("Media");
         worksheet.cell("B1").value("Author");
@@ -91,7 +91,7 @@ export async function GET(request: Request) {
             worksheet.cell(`A${j + 2}`).value(entry.mediaType);
             worksheet.cell(`B${j + 2}`).value(entry.author).style('wrapText', true);
             worksheet.cell(`C${j + 2}`).value(entry.title).style({ 'wrapText': true, bold: true });
-            const year = sanatizeYear(entry);
+            const year = sanitizeYear(entry);
             if (year) worksheet.cell(`D${j + 2}`).value(year).style('horizontalAlignment', 'center');
             worksheet.cell(`E${j + 2}`).value(entry.publishedLocation).style('wrapText', true);
             worksheet.cell(`F${j + 2}`).value(entry.publishedBy).style('wrapText', true);
@@ -110,7 +110,7 @@ export async function GET(request: Request) {
     });
 
     const timestamp = new Date().toISOString()
-    const filenameBase = filenameSection ? `library-${sanatizeName(filenameSection)}` : 'library'
+    const filenameBase = filenameSection ? `library-${sanitizeName(filenameSection)}` : 'library'
 
     return new NextResponse(await workbook.outputAsync(), {
         status: 200,
