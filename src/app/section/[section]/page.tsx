@@ -1,12 +1,12 @@
 import SectionPageView from "@/components/SectionPageView";
 
 type SectionRouteProps = {
-  params: {
+  params: Promise<{
     section: string;
-  };
+  }>;
 };
 
-export default function SectionRoutePage({ params }: SectionRouteProps) {
-  const activeSection = decodeURIComponent(params.section);
+export default async function SectionRoutePage({ params }: SectionRouteProps) {
+  const activeSection = decodeURIComponent((await params).section);
   return <SectionPageView section={activeSection} />;
 }

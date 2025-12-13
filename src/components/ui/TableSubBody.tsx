@@ -4,9 +4,9 @@ import { TableBody, TableCell, TableRow } from "./table"
 const TableSubBody = React.forwardRef<
     HTMLTableSectionElement,
     React.HTMLAttributes<HTMLTableSectionElement> & { sectionName?: string | React.ReactElement, cols: number }
->(({ className, sectionName, cols, children }) => {
+>(({ className, sectionName, cols, children }, ref) => {
     return (
-        <TableBody className={className}>
+        <TableBody className={className} ref={ref}>
             {
                 sectionName ?
                     <TableRow>
