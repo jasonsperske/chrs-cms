@@ -6,6 +6,7 @@ import { Entry } from "@/lib/types/library/Entry";
 import { AnalyzeBookResponse } from "@/lib/types/openai/AnalyzedBookResponse";
 import { Input } from "./ui/input";
 import { bindInput } from "@/lib/utils";
+import SearchDialog from "./SearchDialog";
 
 type Props = {
     onSelectVariant: (variant: Entry) => void;
@@ -20,6 +21,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
     const [section, setSection] = useState(() => defaultSection ?? "")
     const [isDragging, setIsDragging] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -201,6 +203,13 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                     >
                         Submit
                     </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => setIsSearchOpen(true)}
+                        className="flex-none"
+                    >
+                        Search
+                    </Button>
                 </div>
             </form>
             {variations.map((variant, index) => (
@@ -273,6 +282,11 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
             >
                 {isDragging ? "Edit Manually" : "Add Manually"}
             </Button>
+            <SearchDialog
+                open={isSearchOpen}
+                onClose={() => setIsSearchOpen(false)}
+                onSelectEntry={(entry) => onAddManually(entry)}
+            />
         </>
     );
 }
