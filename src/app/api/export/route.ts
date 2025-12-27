@@ -59,45 +59,48 @@ export async function GET(request: Request) {
         } else {
             worksheet = workbook.addSheet(sanitizeName(section.name), i);
         }
-        worksheet.cell("A1").value("Media");
-        worksheet.cell("B1").value("Author");
-        worksheet.cell("C1").value("Title");
-        worksheet.cell("D1").value("Year");
-        worksheet.cell("E1").value("Place Published");
-        worksheet.cell("F1").value("Publisher");
-        worksheet.cell("G1").value("Edition");
-        worksheet.cell("H1").value("ISBN");
-        worksheet.cell("I1").value("LOC");
-        worksheet.cell("J1").value("Category");
-        worksheet.cell("K1").value("Status");
+        worksheet.cell("A1").value("ID")
+        worksheet.cell("B1").value("Media");
+        worksheet.cell("C1").value("Author");
+        worksheet.cell("D1").value("Title");
+        worksheet.cell("E1").value("Year");
+        worksheet.cell("F1").value("Place Published");
+        worksheet.cell("G1").value("Publisher");
+        worksheet.cell("H1").value("Edition");
+        worksheet.cell("I1").value("ISBN");
+        worksheet.cell("J1").value("LOC");
+        worksheet.cell("K1").value("Category");
+        worksheet.cell("L1").value("Status");
         // set header styles
-        const header = worksheet.range("A1:K1");
+        const header = worksheet.range("A1:L1");
         header.style({ bold: true, fontSize: 11, fontColor: 'FFFFFF', fill: '156082' });
-        worksheet.column("A").width(12);
-        worksheet.column("B").width(25);
-        worksheet.column("C").width(40);
-        worksheet.column("D").width(6);
-        worksheet.column("E").width(15);
-        worksheet.column("F").width(21);
+        worksheet.column("A").width(4);
+        worksheet.column("B").width(12);
+        worksheet.column("C").width(25);
+        worksheet.column("D").width(40);
+        worksheet.column("E").width(6);
+        worksheet.column("F").width(15);
         worksheet.column("G").width(21);
-        worksheet.column("H").width(15);
-        worksheet.column("I").width(10);
+        worksheet.column("H").width(21);
+        worksheet.column("I").width(15);
         worksheet.column("J").width(10);
         worksheet.column("K").width(10);
+        worksheet.column("L").width(10);
         // freeze top row
         worksheet.freezePanes(0, 1);
         let lastMedia = "";
         section.entries.forEach((entry, j) => {
-            worksheet.cell(`A${j + 2}`).value(entry.mediaType);
-            worksheet.cell(`B${j + 2}`).value(entry.author).style('wrapText', true);
-            worksheet.cell(`C${j + 2}`).value(entry.title).style({ 'wrapText': true, bold: true });
+            worksheet.cell(`A${j + 2}`).value(entry.id);
+            worksheet.cell(`B${j + 2}`).value(entry.mediaType);
+            worksheet.cell(`C${j + 2}`).value(entry.author).style('wrapText', true);
+            worksheet.cell(`D${j + 2}`).value(entry.title).style({ 'wrapText': true, bold: true });
             const year = sanitizeYear(entry);
-            if (year) worksheet.cell(`D${j + 2}`).value(year).style('horizontalAlignment', 'center');
-            worksheet.cell(`E${j + 2}`).value(entry.publishedLocation).style('wrapText', true);
-            worksheet.cell(`F${j + 2}`).value(entry.publishedBy).style('wrapText', true);
-            worksheet.cell(`G${j + 2}`).value(entry.edition).style('wrapText', true);
-            worksheet.cell(`H${j + 2}`).value(entry.serialNumber);
-            worksheet.cell(`I${j + 2}`).value(entry.catalogNumber);
+            if (year) worksheet.cell(`E${j + 2}`).value(year).style('horizontalAlignment', 'center');
+            worksheet.cell(`F${j + 2}`).value(entry.publishedLocation).style('wrapText', true);
+            worksheet.cell(`G${j + 2}`).value(entry.publishedBy).style('wrapText', true);
+            worksheet.cell(`H${j + 2}`).value(entry.edition).style('wrapText', true);
+            worksheet.cell(`I${j + 2}`).value(entry.serialNumber);
+            worksheet.cell(`J${j + 2}`).value(entry.catalogNumber);
             const style = { verticalAlignment: 'top', border: true, fontSize: 12 } as Record<string, unknown>;
             if (!lastMedia) {
                 lastMedia = entry.mediaType;
@@ -105,7 +108,8 @@ export async function GET(request: Request) {
                 lastMedia = entry.mediaType;
                 style['topBorder'] = 'double';
             }
-            worksheet.range(`A${j + 2}:K${j + 2}`).style(style);
+            worksheet.range(`A${j + 2}:L${j + 2}`).style(style);
+            worksheet.column("A").hidden(true);
         });
     });
 
