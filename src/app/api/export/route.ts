@@ -109,8 +109,8 @@ export async function GET(request: Request) {
                 style['topBorder'] = 'double';
             }
             worksheet.range(`A${j + 2}:L${j + 2}`).style(style);
-            worksheet.column("A").hidden(true);
         });
+        worksheet.column("A").hidden(true);
     });
 
     const timestamp = new Date().toISOString()
