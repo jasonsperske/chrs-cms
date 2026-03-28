@@ -61,46 +61,59 @@ export async function GET(request: Request) {
         }
         worksheet.cell("A1").value("ID")
         worksheet.cell("B1").value("Media");
-        worksheet.cell("C1").value("Author");
-        worksheet.cell("D1").value("Title");
-        worksheet.cell("E1").value("Year");
-        worksheet.cell("F1").value("Place Published");
-        worksheet.cell("G1").value("Publisher");
-        worksheet.cell("H1").value("Edition");
-        worksheet.cell("I1").value("ISBN");
-        worksheet.cell("J1").value("LOC");
-        worksheet.cell("K1").value("Category");
-        worksheet.cell("L1").value("Status");
+        worksheet.cell("C1").value("Sort By");
+        worksheet.cell("D1").value("Author");
+        worksheet.cell("E1").value("Title");
+        worksheet.cell("F1").value("Published On");
+        worksheet.cell("G1").value("Year");
+        worksheet.cell("H1").value("Place Published");
+        worksheet.cell("I1").value("Publisher");
+        worksheet.cell("J1").value("Edition");
+        worksheet.cell("K1").value("Edition Year");
+        worksheet.cell("L1").value("ISBN");
+        worksheet.cell("M1").value("LOC");
+        worksheet.cell("N1").value("Section");
+        worksheet.cell("O1").value("Status");
         // set header styles
-        const header = worksheet.range("A1:L1");
+        const header = worksheet.range("A1:O1");
         header.style({ bold: true, fontSize: 11, fontColor: 'FFFFFF', fill: '156082' });
         worksheet.column("A").width(4);
         worksheet.column("B").width(12);
         worksheet.column("C").width(25);
-        worksheet.column("D").width(40);
-        worksheet.column("E").width(6);
-        worksheet.column("F").width(15);
-        worksheet.column("G").width(21);
-        worksheet.column("H").width(21);
-        worksheet.column("I").width(15);
-        worksheet.column("J").width(10);
-        worksheet.column("K").width(10);
-        worksheet.column("L").width(10);
+        worksheet.column("D").width(25);
+        worksheet.column("E").width(40);
+        worksheet.column("F").width(14);
+        worksheet.column("G").width(6);
+        worksheet.column("H").width(15);
+        worksheet.column("I").width(21);
+        worksheet.column("J").width(21);
+        worksheet.column("K").width(14);
+        worksheet.column("L").width(15);
+        worksheet.column("M").width(10);
+        worksheet.column("N").width(10);
+        worksheet.column("O").width(10);
         // freeze top row
         worksheet.freezePanes(0, 1);
         let lastMedia = "";
         section.entries.forEach((entry, j) => {
             worksheet.cell(`A${j + 2}`).value(entry.id);
             worksheet.cell(`B${j + 2}`).value(entry.mediaType);
-            worksheet.cell(`C${j + 2}`).value(entry.author).style('wrapText', true);
-            worksheet.cell(`D${j + 2}`).value(entry.title).style({ 'wrapText': true, bold: true });
+            const sortBy = entry.sortBy ? entry.sortBy : entry.author ? entry.author : entry.title;
+            worksheet.cell(`C${j + 2}`).value(sortBy).style('wrapText', true);
+            worksheet.cell(`D${j + 2}`).value(entry.author).style('wrapText', true);
+            worksheet.cell(`E${j + 2}`).value(entry.title).style({ 'wrapText': true, bold: true });
+            worksheet.cell(`F${j + 2}`).value(entry.publishedOn);
             const year = sanitizeYear(entry);
-            if (year) worksheet.cell(`E${j + 2}`).value(year).style('horizontalAlignment', 'center');
-            worksheet.cell(`F${j + 2}`).value(entry.publishedLocation).style('wrapText', true);
-            worksheet.cell(`G${j + 2}`).value(entry.publishedBy).style('wrapText', true);
-            worksheet.cell(`H${j + 2}`).value(entry.edition).style('wrapText', true);
-            worksheet.cell(`I${j + 2}`).value(entry.serialNumber);
-            worksheet.cell(`J${j + 2}`).value(entry.catalogNumber);
+            if (year) {
+                worksheet.cell(`G${j + 2}`).value(year).style({ horizontalAlignment: 'center', fill: 'f0f0f0' });
+            }
+            worksheet.cell(`H${j + 2}`).value(entry.publishedLocation).style('wrapText', true);
+            worksheet.cell(`I${j + 2}`).value(entry.publishedBy).style('wrapText', true);
+            worksheet.cell(`J${j + 2}`).value(entry.edition).style('wrapText', true);
+            worksheet.cell(`K${j + 2}`).value(entry.editionYear).style('wrapText', true);
+
+            worksheet.cell(`L${j + 2}`).value(entry.serialNumber);
+            worksheet.cell(`M${j + 2}`).value(entry.catalogNumber);
             const style = { verticalAlignment: 'top', border: true, fontSize: 12 } as Record<string, unknown>;
             if (!lastMedia) {
                 lastMedia = entry.mediaType;
@@ -108,7 +121,7 @@ export async function GET(request: Request) {
                 lastMedia = entry.mediaType;
                 style['topBorder'] = 'double';
             }
-            worksheet.range(`A${j + 2}:L${j + 2}`).style(style);
+            worksheet.range(`A${j + 2}:O${j + 2}`).style(style);
         });
         worksheet.column("A").hidden(true);
     });

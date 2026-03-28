@@ -1,6 +1,7 @@
 export type MediaType = "book" | "magazine" | string
 type OptionalFields = {
     id?: number
+    sortBy?: string
     author?: string
     publishedBy?: string
     publishedOn?: string
@@ -16,6 +17,7 @@ export class Entry {
     id?: number
     mediaType: MediaType
     title: string
+    sortBy?: string
     author?: string
     publishedBy?: string
     publishedOn?: string
@@ -31,6 +33,7 @@ export class Entry {
         this.mediaType = mediaType
 
         this.id = rest.id
+        this.sortBy = rest.sortBy
         this.author = rest.author
         this.publishedBy = rest.publishedBy
         this.publishedLocation = rest.publishedLocation
@@ -47,6 +50,7 @@ export class Entry {
 
         data.append("mediaType", this.mediaType);
         data.append("title", this.title);
+        data.append("sortBy", this.sortBy ?? "");
         data.append("author", this.author ?? "");
         data.append("publishedBy", this.publishedBy ?? "");
         data.append("publishedOn", this.publishedOn ?? "");

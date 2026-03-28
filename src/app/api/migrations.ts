@@ -16,17 +16,48 @@ const migrate = () => {
         publishedOn TEXT,
         serialNumber TEXT,
         catalogNumber TEXT,
-        section TEXT
+        section TEXT,
+        sortBy TEXT
       );
     `,
-            (err: Error) => {
+            (err: Error | null) => {
                 if (err) {
                     console.error(err.message);
+                } else {
+                    console.log("library table ensured.");
                 }
-                console.log("articles table created successfully.");
+
+                db.all(
+                    "PRAGMA table_info(library)",
+                    [],
+                    (
+                        pragmaErr: Error | null,
+                        rows: { name: string }[]
+                    ) => {
+                        if (pragmaErr) {
+                            console.error(pragmaErr.message);
+                            return;
+                        }
+                        const hasSortBy = rows.some((r) => r.name === "sortBy");
+                        if (!hasSortBy) {
+                            db.run(
+                                "ALTER TABLE library ADD COLUMN sortBy TEXT",
+                                (alterErr: Error | null) => {
+                                    if (alterErr) {
+                                        console.error(alterErr.message);
+                                    } else {
+                                        console.log(
+                                            "Migration: added sortBy column to library."
+                                        );
+                                    }
+                                }
+                            );
+                        }
+                    }
+                );
             }
         );
     });
-}
+};
 
-migrate()
+migrate();

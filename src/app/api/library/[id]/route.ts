@@ -38,6 +38,7 @@ export async function PUT(request: Request, { params }: Params) {
   const body = formBody(await request.formData());
   const mediaType = body("mediaType");
   const title = body("title");
+  const sortBy = body("sortBy");
   const author = body("author");
   const section = body("section");
   const publishedBy = body("publishedBy");
@@ -49,10 +50,11 @@ export async function PUT(request: Request, { params }: Params) {
   const catalogNumber = body("catalogNumber");
 
   const updated = await apiExec(
-    "UPDATE library SET mediaType = ?, title = ?, author = ?, section = ?, publishedBy = ?, publishedOn = ?, publishedLocation = ?, edition = ?, editionYear = ?, serialNumber = ?, catalogNumber = ? WHERE id = ?",
+    "UPDATE library SET mediaType = ?, title = ?, sortBy = ?, author = ?, section = ?, publishedBy = ?, publishedOn = ?, publishedLocation = ?, edition = ?, editionYear = ?, serialNumber = ?, catalogNumber = ? WHERE id = ?",
     [
       mediaType,
       title,
+      sortBy,
       author,
       section,
       publishedBy,
@@ -71,6 +73,7 @@ export async function PUT(request: Request, { params }: Params) {
     id: parseInt(id, 10),
     mediaType,
     title,
+    sortBy,
     author,
     section,
     publishedBy,

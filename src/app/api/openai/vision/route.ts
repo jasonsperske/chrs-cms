@@ -42,7 +42,7 @@ export async function POST(request: Request) {
           "the place where the book was published in a field called `publishedLocation`.",
           "If it is possible tell me the edition of the book or magazine in a field",
           "called `edition`, if the edition is published in a later year tell me in",
-          "a fieled called `editionYear`. If it is possible identify the ISBN number",
+          "a field called `editionYear`. If it is possible identify the ISBN number",
           '(also sometimes labeled "International Standard Book No.") in a field',
           'called `serialNumber`. If it is possible identify the "Library of Congress',
           'Catalog Card Number" number (also sometimes labeled "Library of Congress',

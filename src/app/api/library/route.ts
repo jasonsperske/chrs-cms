@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const sectionParam = searchParams.get("section")
 
     const baseQuery = "SELECT * FROM library"
-    const orderBy = " ORDER BY section ASC, mediaType ASC, title ASC"
+    const orderBy = " ORDER BY section ASC, mediaType ASC, sortBy ASC, title ASC"
 
     let query = baseQuery
     const params: unknown[] = []
@@ -34,6 +34,7 @@ export async function POST(request: Request) {
 
     const mediaType = body("mediaType")
     const title = body("title")
+    const sortBy = body("sortBy")
     const author = body("author")
     const section = body("section")
     const publishedBy = body("publishedBy")
@@ -45,10 +46,11 @@ export async function POST(request: Request) {
     const catalogNumber = body("catalogNumber")
 
     const id = await apiPost(
-        "INSERT INTO library(mediaType, title, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber) VALUES (?, ?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO library(mediaType, title, sortBy, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber) VALUES (?, ?,?,?,?,?,?,?,?,?,?,?)",
         [
             mediaType,
             title,
+            sortBy,
             author,
             section,
             publishedBy,
@@ -66,6 +68,7 @@ export async function POST(request: Request) {
             id,
             mediaType,
             title,
+            sortBy,
             author,
             section,
             publishedBy,

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "./ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
@@ -20,6 +20,7 @@ export default function EditLibraryEntry({
   onDelete,
 }: Props) {
   const [title, setTitle] = useState(entry.title);
+  const [sortBy, setSortBy] = useState(entry.sortBy);
   const [author, setAuthor] = useState(entry.author);
   const [mediaType, setMediaType] = useState(entry.mediaType);
   const [publishedBy, setPublishedBy] = useState(entry.publishedBy);
@@ -38,9 +39,9 @@ export default function EditLibraryEntry({
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[625px] bg-white overflow-y-auto max-h-[90vh] p-4 sm:p-6">
-        <DialogHeader className="bg-white pb-4">
+        <DialogTitle className="bg-white pb-4">
           {isNewEntry ? "Add New Entry" : `Edit ${entry.title}`}
-        </DialogHeader>
+        </DialogTitle>
         <form
           method={isNewEntry ? "POST" : "PUT"}
           action={isNewEntry ? "/api/library" : `/api/library/${entry.id}`}
@@ -49,6 +50,7 @@ export default function EditLibraryEntry({
             onEdit(new Entry(title, mediaType, {
               id: entry.id,
               author,
+              sortBy,
               publishedBy,
               publishedOn,
               publishedLocation,
@@ -149,6 +151,14 @@ export default function EditLibraryEntry({
                 <Input
                   value={catalogNumber}
                   onChange={bindInput(setCatalogNumber)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Sort By</Label>
+                <Input
+                  value={sortBy}
+                  onChange={bindInput(setSortBy)}
                   className="col-span-3"
                 />
               </div>
