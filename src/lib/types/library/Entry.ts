@@ -1,4 +1,29 @@
 export type MediaType = "book" | "magazine" | string
+
+/** Plain-object shape for Entry fields in JSON (matches exported XLSX columns). */
+export type SerializedEntry = {
+    id?: number
+    mediaType: MediaType
+    title: string
+    sortBy?: string
+    author?: string
+    publishedBy?: string
+    publishedOn?: string
+    publishedLocation?: string
+    edition?: string
+    editionYear?: string
+    serialNumber?: string
+    catalogNumber?: string
+    section?: string
+    /** True when the ID cell (column A) has strikethrough in the spreadsheet. */
+    deleted?: boolean
+}
+
+/** Response body when parsing a library spreadsheet (first worksheet). */
+export type SpreadsheetWorksheetPayload = {
+    records: SerializedEntry[]
+}
+
 type OptionalFields = {
     id?: number
     sortBy?: string
