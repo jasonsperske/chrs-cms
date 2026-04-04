@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TableSubBody } from "@/components/ui/TableSubBody";
+import Toast from "@/components/ui/Toast";
 import {
   Entry,
   SerializedEntry,
@@ -82,6 +83,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
     null
   );
   const [importError, setImportError] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -197,6 +199,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
     const formData = new FormData();
     formData.append("file", file);
 
+    setIsImporting(true);
     try {
       const res = await fetch("/api/library/import-xlsx", {
         method: "POST",
@@ -215,6 +218,8 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
       setImportError(null);
     } catch {
       setImportError("Failed to process the XLSX file. Please try again.");
+    } finally {
+      setIsImporting(false);
     }
   }
 
@@ -538,6 +543,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
           />
         ) : null}
       </main>
+      <Toast message="Importing XLSX…" visible={isImporting} />
     </div>
   );
 }
