@@ -17,6 +17,10 @@ const migrate = () => {
         serialNumber TEXT,
         catalogNumber TEXT,
         section TEXT,
+        subCategory TEXT,
+        status TEXT,
+        publishedSource TEXT,
+        pages TEXT,
         sortBy TEXT
       );
     `,
@@ -38,21 +42,24 @@ const migrate = () => {
                             console.error(pragmaErr.message);
                             return;
                         }
-                        const hasSortBy = rows.some((r) => r.name === "sortBy");
-                        if (!hasSortBy) {
-                            db.run(
-                                "ALTER TABLE library ADD COLUMN sortBy TEXT",
-                                (alterErr: Error | null) => {
-                                    if (alterErr) {
-                                        console.error(alterErr.message);
-                                    } else {
-                                        console.log(
-                                            "Migration: added sortBy column to library."
-                                        );
+                        const newColumns = ["sortBy", "subCategory", "status", "publishedSource", "pages"];
+                        newColumns.forEach((col) => {
+                            const hasColumn = rows.some((r) => r.name === col);
+                            if (!hasColumn) {
+                                db.run(
+                                    `ALTER TABLE library ADD COLUMN ${col} TEXT`,
+                                    (alterErr: Error | null) => {
+                                        if (alterErr) {
+                                            console.error(alterErr.message);
+                                        } else {
+                                            console.log(
+                                                `Migration: added ${col} column to library.`
+                                            );
+                                        }
                                     }
-                                }
-                            );
-                        }
+                                );
+                            }
+                        });
                     }
                 );
             }

@@ -38,6 +38,10 @@ const ENTRY_FIELDS = [
   "serialNumber",
   "catalogNumber",
   "section",
+  "subCategory",
+  "status",
+  "publishedSource",
+  "pages",
 ] as const;
 
 type EntryField = (typeof ENTRY_FIELDS)[number];

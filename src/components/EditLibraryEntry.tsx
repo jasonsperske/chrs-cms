@@ -33,6 +33,10 @@ export default function EditLibraryEntry({
   const [serialNumber, setSerialNumber] = useState(entry.serialNumber);
   const [catalogNumber, setCatalogNumber] = useState(entry.catalogNumber);
   const [section, setSection] = useState(entry.section);
+  const [subCategory, setSubCategory] = useState(entry.subCategory);
+  const [status, setStatus] = useState(entry.status);
+  const [publishedSource, setPublishedSource] = useState(entry.publishedSource);
+  const [pages, setPages] = useState(entry.pages);
 
   const isNewEntry = !entry.id;
 
@@ -58,7 +62,11 @@ export default function EditLibraryEntry({
               editionYear,
               serialNumber,
               catalogNumber,
-              section
+              section,
+              subCategory,
+              status,
+              publishedSource,
+              pages,
             }));
           }}
         >
@@ -159,6 +167,38 @@ export default function EditLibraryEntry({
                 <Input
                   value={sortBy}
                   onChange={bindInput(setSortBy)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Sub Category</Label>
+                <Input
+                  value={subCategory}
+                  onChange={bindInput(setSubCategory)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Status</Label>
+                <Input
+                  value={status}
+                  onChange={bindInput(setStatus)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Published Source</Label>
+                <Input
+                  value={publishedSource}
+                  onChange={bindInput(setPublishedSource)}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Pages</Label>
+                <Input
+                  value={pages}
+                  onChange={bindInput(setPages)}
                   className="col-span-3"
                 />
               </div>

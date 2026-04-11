@@ -72,10 +72,12 @@ export async function GET(request: Request) {
         worksheet.cell("K1").value("Edition Year");
         worksheet.cell("L1").value("ISBN");
         worksheet.cell("M1").value("LOC");
-        worksheet.cell("N1").value("Section");
+        worksheet.cell("N1").value("Sub-Category");
         worksheet.cell("O1").value("Status");
+        worksheet.cell("P1").value("Published Source");
+        worksheet.cell("Q1").value("Pages");
         // set header styles
-        const header = worksheet.range("A1:O1");
+        const header = worksheet.range("A1:Q1");
         header.style({ bold: true, fontSize: 11, fontColor: 'FFFFFF', fill: '156082' });
         worksheet.column("A").width(4);
         worksheet.column("B").width(12);
@@ -92,6 +94,8 @@ export async function GET(request: Request) {
         worksheet.column("M").width(10);
         worksheet.column("N").width(10);
         worksheet.column("O").width(10);
+        worksheet.column("P").width(15);
+        worksheet.column("Q").width(10);
         // freeze top row
         worksheet.freezePanes(0, 1);
         let lastMedia = "";
@@ -121,7 +125,7 @@ export async function GET(request: Request) {
                 lastMedia = entry.mediaType;
                 style['topBorder'] = 'double';
             }
-            worksheet.range(`A${j + 2}:O${j + 2}`).style(style);
+            worksheet.range(`A${j + 2}:Q${j + 2}`).style(style);
         });
         worksheet.column("A").hidden(true);
     });

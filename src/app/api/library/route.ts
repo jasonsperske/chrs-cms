@@ -44,9 +44,13 @@ export async function POST(request: Request) {
     const editionYear = body("editionYear")
     const serialNumber = body("serialNumber")
     const catalogNumber = body("catalogNumber")
+    const subCategory = body("subCategory")
+    const status = body("status")
+    const publishedSource = body("publishedSource")
+    const pages = body("pages")
 
     const id = await apiPost(
-        "INSERT INTO library(mediaType, title, sortBy, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber) VALUES (?, ?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO library(mediaType, title, sortBy, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber, subCategory, status, publishedSource, pages) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
             mediaType,
             title,
@@ -59,7 +63,11 @@ export async function POST(request: Request) {
             edition,
             editionYear,
             serialNumber,
-            catalogNumber
+            catalogNumber,
+            subCategory,
+            status,
+            publishedSource,
+            pages
         ])
 
     return NextResponse.json(
@@ -77,6 +85,10 @@ export async function POST(request: Request) {
             edition,
             editionYear,
             serialNumber,
-            catalogNumber
+            catalogNumber,
+            subCategory,
+            status,
+            publishedSource,
+            pages
         })
 }
