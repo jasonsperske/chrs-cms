@@ -63,7 +63,10 @@ export async function POST(request: Request): Promise<Response> {
     const editionYearCol = col("Edition Year");
     const serialNumberCol = col("ISBN");
     const catalogNumberCol = col("LOC");
-    const sectionCol = col("Section");
+    const subCategoryCol = col("Sub-Category");
+    const statusCol = col("Status");
+    const publishedSourceCol = col("Published Source");
+    const pagesCol = col("Pages");
 
     function str(v: unknown): string | undefined {
         if (v === null || v === undefined || v === "") return undefined;
@@ -94,7 +97,10 @@ export async function POST(request: Request): Promise<Response> {
             editionYear: editionYearCol >= 0 ? str(row[editionYearCol]) : undefined,
             serialNumber: serialNumberCol >= 0 ? str(row[serialNumberCol]) : undefined,
             catalogNumber: catalogNumberCol >= 0 ? str(row[catalogNumberCol]) : undefined,
-            section: sectionCol >= 0 ? str(row[sectionCol]) : undefined,
+            subCategory: subCategoryCol >= 0 ? str(row[subCategoryCol]) : undefined,
+            status: statusCol >= 0 ? str(row[statusCol]) : undefined,
+            publishedSource: publishedSourceCol >= 0 ? str(row[publishedSourceCol]) : undefined,
+            pages: pagesCol >= 0 ? str(row[pagesCol]) : undefined,
         });
     }
 

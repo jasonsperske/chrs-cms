@@ -15,6 +15,10 @@ export type SerializedEntry = {
     serialNumber?: string
     catalogNumber?: string
     section?: string
+    subCategory?: string
+    status?: string
+    publishedSource?: string
+    pages?: string
     /** True when the ID cell (column A) has strikethrough in the spreadsheet. */
     deleted?: boolean
 }
@@ -36,6 +40,10 @@ type OptionalFields = {
     serialNumber?: string
     catalogNumber?: string
     section?: string
+    subCategory?: string
+    status?: string
+    publishedSource?: string
+    pages?: string
 }
 
 export class Entry {
@@ -52,6 +60,10 @@ export class Entry {
     serialNumber?: string
     catalogNumber?: string
     section?: string
+    subCategory?: string
+    status?: string
+    publishedSource?: string
+    pages?: string
 
     constructor(title: string, mediaType: MediaType, rest = {} as OptionalFields) {
         this.title = title
@@ -68,6 +80,10 @@ export class Entry {
         this.serialNumber = rest.serialNumber
         this.catalogNumber = rest.catalogNumber
         this.section = rest.section
+        this.subCategory = rest.subCategory
+        this.status = rest.status
+        this.publishedSource = rest.publishedSource
+        this.pages = rest.pages
     }
 
     asFormData() {
@@ -84,7 +100,11 @@ export class Entry {
         data.append("editionYear", this.editionYear ?? "");
         data.append("serialNumber", this.serialNumber ?? "");
         data.append("catalogNumber", this.catalogNumber ?? "");
-        data.append("section", this.section ?? "")
+        data.append("section", this.section ?? "");
+        data.append("subCategory", this.subCategory ?? "");
+        data.append("status", this.status ?? "");
+        data.append("publishedSource", this.publishedSource ?? "");
+        data.append("pages", this.pages ?? "");
 
         return data
     }
