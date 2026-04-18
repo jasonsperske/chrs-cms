@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const pages = body("pages")
 
     const id = await apiPost(
-        "INSERT INTO library(mediaType, title, sortBy, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber, subCategory, status, publishedSource, pages) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO library(mediaType, title, sortBy, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber, subCategory, status, publishedSource, pages) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [
             mediaType,
             title,
