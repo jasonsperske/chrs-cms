@@ -204,7 +204,7 @@ export default function EditLibraryEntry({
               </div>
             </div>
           </div>
-          <DialogFooter className="bg-white pt-4 border-t">
+          <DialogFooter className="bg-white pt-4 pb-4 sm:pb-0 border-t flex-col gap-2 sm:gap-0">
             <Button type="submit">{isNewEntry ? "Add" : "Save"}</Button>
             {!isNewEntry && (
               <Button
