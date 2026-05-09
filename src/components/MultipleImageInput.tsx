@@ -165,6 +165,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileSelect}
+                            capture="environment"
                             multiple
                             accept="image/*"
                             className="hidden"
