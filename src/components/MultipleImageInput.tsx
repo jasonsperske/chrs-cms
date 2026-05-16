@@ -7,6 +7,8 @@ import { AnalyzeBookResponse } from "@/lib/types/openai/AnalyzedBookResponse";
 import { Input } from "./ui/input";
 import { bindInput } from "@/lib/utils";
 import SearchDialog from "./SearchDialog";
+import CameraCapture from "./CameraCapture";
+import Camera from "./icons/camera";
 
 type Props = {
     onSelectVariant: (variant: Entry) => void;
@@ -22,6 +24,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
     const [isDragging, setIsDragging] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -72,37 +75,39 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
         });
     }
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>): void {
-        event.preventDefault();
+    async function submitFiles(filesToSubmit: File[]): Promise<void> {
+        if (filesToSubmit.length === 0) return;
         setIsProcessing(true);
         setVariations([]);
+        try {
+            const resizedFiles = await Promise.all(filesToSubmit.map(resizeImage));
+            const formData = new FormData();
+            for (const file of resizedFiles) {
+                formData.append("files", file);
+            }
+            const response = await fetch("/api/openai/vision", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error("Failed to process images");
+            }
+            const payload = data.response.choices[0].message.content;
+            if (payload.startsWith("```json") && payload.endsWith("```")) {
+                const analyzedBookResponse = new AnalyzeBookResponse(JSON.parse(payload.slice(7, -3)), section)
+                setVariations(analyzedBookResponse.interpretations)
+            } else {
+                throw new Error("Failed to parse response");
+            }
+        } finally {
+            setIsProcessing(false);
+        }
+    }
 
-        // Process all images before submitting
-        Promise.all(files.map(resizeImage))
-            .then(resizedFiles => {
-                const formData = new FormData();
-                for (const file of resizedFiles) {
-                    formData.append("files", file);   
-                }
-                return fetch("/api/openai/vision", {
-                    method: "POST",
-                    body: formData,
-                }); 
-            })
-            .then((response) => response.json())
-            .then((data) => {
-                if (!data.success) {
-                    throw new Error("Failed to process images");
-                }
-                const payload = data.response.choices[0].message.content;
-                if (payload.startsWith("```json") && payload.endsWith("```")) {
-                    const analyzedBookResponse = new AnalyzeBookResponse(JSON.parse(payload.slice(7, -3)), section)
-                    setVariations(analyzedBookResponse.interpretations)
-                } else {
-                    throw new Error("Failed to parse response");
-                }
-            })
-            .finally(() => setIsProcessing(false));
+    function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+        event.preventDefault();
+        submitFiles(files);
     }
 
     function handleDrop(event: Event): void {
@@ -205,6 +210,15 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                         Submit
                     </Button>
                     <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsCameraOpen(true)}
+                        className="flex-none flex items-center gap-1"
+                    >
+                        <Camera /> Camera
+                    </Button>
+                    <Button
+                        type="button"
                         variant="outline"
                         onClick={() => setIsSearchOpen(true)}
                         className="flex-none"
@@ -287,6 +301,20 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                 open={isSearchOpen}
                 onClose={() => setIsSearchOpen(false)}
                 onSelectEntry={(entry) => onAddManually(entry)}
+            />
+            <CameraCapture
+                open={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
+                onAnalyze={submitFiles}
+                onAddFiles={(captured) => setFiles((prev) => [...prev, ...captured])}
+                isAnalyzing={isProcessing}
+                variations={variations}
+                onSelectVariant={(variant) => {
+                    onSelectVariant(variant);
+                    setFiles([]);
+                    setVariations([]);
+                }}
+                onClearVariations={() => setVariations([])}
             />
         </>
     );
