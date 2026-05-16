@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import EditLibraryEntry from "@/components/EditLibraryEntry";
 import MultipleImageInput from "@/components/MultipleImageInput";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Table,
   TableCell,
@@ -351,8 +352,8 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
 
     let rowClass = "";
     if (isProcessing) rowClass = "opacity-60";
-    else if (isDeleted) rowClass = "bg-red-100";
-    else if (isModified) rowClass = "bg-gray-100";
+    else if (isDeleted) rowClass = "bg-red-100 dark:bg-red-950";
+    else if (isModified) rowClass = "bg-gray-100 dark:bg-gray-800";
 
     return (
       <TableRow
@@ -405,11 +406,14 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
             <Link
               href="/"
               aria-label="Back to all sections"
-              className="text-2xl font-semibold text-neutral-600 hover:text-neutral-900"
+              className="text-2xl font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
             >
               ←
             </Link>
             <h1 className="text-2xl font-semibold">Section: {activeSection}</h1>
+            <div className="ml-auto">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
         <div className="row">
@@ -448,7 +452,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
                   return (
                     <TableRow
                       key={tempKey}
-                      className={isProcessing ? "opacity-60" : "bg-green-100"}
+                      className={isProcessing ? "opacity-60" : "bg-green-100 dark:bg-green-950"}
                     >
                       <TableCell>{imported.title}</TableCell>
                       <TableCell>{imported.author}</TableCell>
@@ -481,9 +485,9 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
         <div className="row">
           <div className="text-center">
             {importError && (
-              <p className="text-sm text-red-600 mb-2">{importError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 mb-2">{importError}</p>
             )}
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               <a
                 href={`/api/export?section=${encodeURIComponent(activeSection)}`}
               >
@@ -523,7 +527,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
                 <button
                   onClick={handleCancelImport}
                   disabled={isSaving}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 text-sm rounded hover:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100 text-sm rounded hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>

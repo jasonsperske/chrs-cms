@@ -106,7 +106,7 @@ export default function SearchDialog({
                   <TableRow
                     key={entry.id ?? entry.title}
                     onClick={() => handleSelect(entry)}
-                    className="cursor-pointer hover:bg-neutral-100"
+                    className="cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   >
                     <TableCell>{entry.title}</TableCell>
                     <TableCell>{entry.author}</TableCell>
@@ -130,7 +130,7 @@ export default function SearchDialog({
             </Table>
           </div>
         ) : searchTerm && !isSearching ? (
-          <p className="text-sm text-neutral-500 text-center py-4">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center py-4">
             No results found.
           </p>
         ) : null}

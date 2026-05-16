@@ -4,6 +4,7 @@ import Link from "next/link";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import EditLibraryEntry from "@/components/EditLibraryEntry";
 import MultipleImageInput from "@/components/MultipleImageInput";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Table,
   TableBody,
@@ -96,6 +97,9 @@ export default function Home() {
   return (
     <div className="p-8 pb-20 font-[family-name:var(--font-geist-sans)]">
       <main>
+        <div className="row mb-4 flex justify-end">
+          <ThemeToggle />
+        </div>
         <div className="row">
           <MultipleImageInput
             onSelectVariant={handleVariantSelection}
@@ -115,9 +119,9 @@ export default function Home() {
                   return (
                     <div
                       key="section:__unknown__"
-                      className="rounded border border-neutral-300 px-4 py-3 text-neutral-800"
+                      className="rounded border border-neutral-300 px-4 py-3 text-neutral-800 dark:border-neutral-700 dark:text-neutral-200"
                     >
-                      <div className="text-lg font-medium text-neutral-500">
+                      <div className="text-lg font-medium text-neutral-500 dark:text-neutral-400">
                         {displayName}
                       </div>
                       {unknownEntries.length ? (
@@ -158,7 +162,7 @@ export default function Home() {
                           </TableBody>
                         </Table>
                       ) : (
-                        <p className="mt-2 text-sm text-neutral-500">
+                        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
                           No entries without a section.
                         </p>
                       )}
@@ -170,20 +174,20 @@ export default function Home() {
                   <Link
                     key={name}
                     href={`/section/${encodeURIComponent(name)}`}
-                    className="rounded border border-neutral-300 px-4 py-3 text-lg font-medium text-neutral-800 hover:border-neutral-500 hover:bg-neutral-100"
+                    className="rounded border border-neutral-300 px-4 py-3 text-lg font-medium text-neutral-800 hover:border-neutral-500 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-neutral-500 dark:hover:bg-neutral-800"
                   >
                     {displayName}
                   </Link>
                 );
               })
             ) : (
-              <p className="text-sm text-neutral-500">No sections yet.</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">No sections yet.</p>
             )}
           </div>
         </div>
         <div className="row">
           <div className="text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               <a href="/api/export">Download XLSX</a>
             </p>
           </div>

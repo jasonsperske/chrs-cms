@@ -158,7 +158,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
             >
                 <div className="flex flex-col grow gap-2">
                     <div
-                        className="border border-dashed border-neutral-600 rounded-sm h-22 w-22 grow p-2 gap-2 cursor-pointer"
+                        className="border border-dashed border-neutral-600 dark:border-neutral-400 rounded-sm h-22 w-22 grow p-2 gap-2 cursor-pointer"
                         onClick={handleClick}
                     >
                         <input
@@ -265,7 +265,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
             <Button
                 variant="outline"
                 onClick={() => onAddManually(new Entry("New Entry", "book", { section }))}
-                className={`flex-none transition-colors ${isDragOver ? 'bg-neutral-100 border-neutral-400' : 'hover:bg-neutral-100 hover:border-neutral-400'}`}
+                className={`flex-none transition-colors ${isDragOver ? 'bg-neutral-100 border-neutral-400 dark:bg-neutral-800 dark:border-neutral-500' : 'hover:bg-neutral-100 hover:border-neutral-400 dark:hover:bg-neutral-800 dark:hover:border-neutral-500'}`}
                 onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragOver(true);
