@@ -411,9 +411,6 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
               ←
             </Link>
             <h1 className="text-2xl font-semibold">Section: {activeSection}</h1>
-            <div className="ml-auto">
-              <ThemeToggle />
-            </div>
           </div>
         </div>
         <div className="row">
@@ -533,6 +530,9 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
                 </button>
               </div>
             )}
+            <div className="mt-2">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
         {!importMap && selected ? (

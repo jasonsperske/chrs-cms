@@ -97,9 +97,6 @@ export default function Home() {
   return (
     <div className="p-8 pb-20 font-[family-name:var(--font-geist-sans)]">
       <main>
-        <div className="row mb-4 flex justify-end">
-          <ThemeToggle />
-        </div>
         <div className="row">
           <MultipleImageInput
             onSelectVariant={handleVariantSelection}
@@ -186,10 +183,11 @@ export default function Home() {
           </div>
         </div>
         <div className="row">
-          <div className="text-center">
+          <div className="flex flex-col items-center gap-2 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400">
               <a href="/api/export">Download XLSX</a>
             </p>
+            <ThemeToggle />
           </div>
         </div>
         {selected ? (

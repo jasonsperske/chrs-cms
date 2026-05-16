@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 
 type Theme = "light" | "dark";
 
@@ -43,24 +42,19 @@ export default function ThemeToggle() {
     window.localStorage.setItem("theme", next);
   }
 
+  const label = mounted
+    ? theme === "dark"
+      ? "Switch to light mode"
+      : "Switch to dark mode"
+    : "Switch theme";
+
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label={
-        mounted
-          ? theme === "dark"
-            ? "Switch to light mode"
-            : "Switch to dark mode"
-          : "Toggle theme"
-      }
-      className="inline-flex h-9 w-9 items-center justify-center rounded border border-neutral-300 text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-800"
+      className="text-xs text-neutral-400 hover:text-neutral-600 hover:underline dark:text-neutral-500 dark:hover:text-neutral-300"
     >
-      {mounted && theme === "dark" ? (
-        <SunIcon className="h-4 w-4" />
-      ) : (
-        <MoonIcon className="h-4 w-4" />
-      )}
+      {label}
     </button>
   );
 }
