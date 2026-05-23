@@ -40,7 +40,7 @@ export async function POST(request: Request) {
           "if it can be determined. If its possible tell me the name of the",
           "publisher in a field called `publishedBy`. If it is possible, tell me",
           "the place where the book was published in a field called `publishedLocation`.",
-          "If it is possible tell me the edition of the book or magazine in a field",
+          "If it is possible tell me the edition of the book, magazine or catalog in a field",
           "called `edition`, if the edition is published in a later year tell me in",
           "a field called `editionYear`. If it is possible identify the ISBN number",
           '(also sometimes labeled "International Standard Book No.") in a field',
