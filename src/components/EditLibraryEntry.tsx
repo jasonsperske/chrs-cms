@@ -42,8 +42,8 @@ export default function EditLibraryEntry({
 
   return (
     <Dialog open={true} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[625px] bg-white overflow-y-auto max-h-[90vh] p-4 sm:p-6">
-        <DialogTitle className="bg-white pb-4">
+      <DialogContent className="sm:max-w-[625px] overflow-y-auto max-h-[90vh] p-4 sm:p-6">
+        <DialogTitle className="pb-4">
           {isNewEntry ? "Add New Entry" : `Edit ${entry.title}`}
         </DialogTitle>
         <form
@@ -204,7 +204,7 @@ export default function EditLibraryEntry({
               </div>
             </div>
           </div>
-          <DialogFooter className="bg-white pt-4 pb-4 sm:pb-0 border-t flex-col gap-2 sm:gap-0">
+          <DialogFooter className="pt-4 pb-4 sm:pb-0 border-t flex-col gap-2 sm:gap-0">
             <Button type="submit">{isNewEntry ? "Add" : "Save"}</Button>
             {!isNewEntry && (
               <Button
