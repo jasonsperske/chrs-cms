@@ -82,7 +82,10 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
             .then(resizedFiles => {
                 const formData = new FormData();
                 for (const file of resizedFiles) {
-                    formData.append("files", file);   
+                    formData.append("files", file);
+                }
+                if (section) {
+                    formData.append("section", section);
                 }
                 return fetch("/api/openai/vision", {
                     method: "POST",
