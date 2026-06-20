@@ -51,10 +51,15 @@ export default function Home() {
     refreshUnknownEntries();
   }, [refreshSections, refreshUnknownEntries]);
 
-  function handleVariantSelection(entry: Entry): void {
+  function handleVariantSelection(entry: Entry, files: File[]): void {
+    const formData = entry.asFormData();
+    for (const file of files) {
+      formData.append("images", file);
+    }
+
     fetch("/api/library", {
       method: "POST",
-      body: entry.asFormData(),
+      body: formData,
     })
       .then(Entry.fromResponse)
       .then(() => {

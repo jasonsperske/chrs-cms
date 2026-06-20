@@ -9,7 +9,7 @@ import { bindInput } from "@/lib/utils";
 import SearchDialog from "./SearchDialog";
 
 type Props = {
-    onSelectVariant: (variant: Entry) => void;
+    onSelectVariant: (variant: Entry, files: File[]) => void;
     onAddManually: (variant?: Entry) => void;
     defaultSection?: string;
 };
@@ -221,7 +221,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                     key={`variant-${index}`}
                     className="p-2 max-w-sm cursor-pointer"
                     onClick={() => {
-                        onSelectVariant(variant);
+                        onSelectVariant(variant, files);
                         setFiles([]);
                         setVariations([]);
                     }}

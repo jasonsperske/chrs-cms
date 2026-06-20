@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiGet, apiPost } from "../database";
+import { saveEntryImages } from "../uploads";
 import { Entry } from "@/lib/types/library/Entry";
 import { formBody } from "@/lib/utils";
 
@@ -30,7 +31,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    const body = formBody(await request.formData());
+    const formData = await request.formData();
+    const body = formBody(formData);
 
     const mediaType = body("mediaType")
     const title = body("title")
@@ -69,6 +71,14 @@ export async function POST(request: Request) {
             publishedSource,
             pages
         ])
+
+    // The images uploaded for scanning have no entry to belong to until the
+    // record is created above. Now that an id is assigned, persist them under
+    // uploads/<id>/.
+    const images = formData
+        .getAll("images")
+        .filter((field): field is File => field instanceof File && field.size > 0)
+    await saveEntryImages(id, images)
 
     return NextResponse.json(
         {
