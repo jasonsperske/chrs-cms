@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiGet, apiPost } from "../database";
-import { saveEntryImages } from "../uploads";
+import { saveEntryImages, moveTempBatchToEntry } from "../uploads";
 import { Entry } from "@/lib/types/library/Entry";
 import { formBody } from "@/lib/utils";
 
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
     const status = body("status")
     const publishedSource = body("publishedSource")
     const pages = body("pages")
+    const uploadToken = body("uploadToken")
 
     const id = await apiPost(
         "INSERT INTO library(mediaType, title, sortBy, author, section, publishedBy, publishedOn, publishedLocation, edition, editionYear, serialNumber, catalogNumber, subCategory, status, publishedSource, pages) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -74,11 +75,16 @@ export async function POST(request: Request) {
 
     // The images uploaded for scanning have no entry to belong to until the
     // record is created above. Now that an id is assigned, persist them under
-    // uploads/<id>/.
-    const images = formData
-        .getAll("images")
-        .filter((field): field is File => field instanceof File && field.size > 0)
-    await saveEntryImages(id, images)
+    // uploads/<id>/. Prefer promoting the temp scan batch (no re-upload); fall
+    // back to any files posted directly with the entry.
+    if (uploadToken) {
+        await moveTempBatchToEntry(uploadToken, id)
+    } else {
+        const images = formData
+            .getAll("images")
+            .filter((field): field is File => field instanceof File && field.size > 0)
+        await saveEntryImages(id, images)
+    }
 
     return NextResponse.json(
         {

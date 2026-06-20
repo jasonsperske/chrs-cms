@@ -147,15 +147,19 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
       });
   }, [activeSection]);
 
-  function handleVariantSelection(entry: Entry): void {
+  function handleVariantSelection(entry: Entry, uploadToken: string | null): void {
     const payload = new Entry(entry.title, entry.mediaType, {
       ...entry,
       section: entry.section ?? activeSection,
     });
+    const formData = payload.asFormData();
+    if (uploadToken) {
+      formData.append("uploadToken", uploadToken);
+    }
 
     fetch("/api/library", {
       method: "POST",
-      body: payload.asFormData(),
+      body: formData,
     })
       .then(Entry.fromResponse)
       .then((savedEntry) => {

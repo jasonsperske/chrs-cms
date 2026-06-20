@@ -51,10 +51,10 @@ export default function Home() {
     refreshUnknownEntries();
   }, [refreshSections, refreshUnknownEntries]);
 
-  function handleVariantSelection(entry: Entry, files: File[]): void {
+  function handleVariantSelection(entry: Entry, uploadToken: string | null): void {
     const formData = entry.asFormData();
-    for (const file of files) {
-      formData.append("images", file);
+    if (uploadToken) {
+      formData.append("uploadToken", uploadToken);
     }
 
     fetch("/api/library", {

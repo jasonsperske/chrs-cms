@@ -9,7 +9,7 @@ import { bindInput } from "@/lib/utils";
 import SearchDialog from "./SearchDialog";
 
 type Props = {
-    onSelectVariant: (variant: Entry, files: File[]) => void;
+    onSelectVariant: (variant: Entry, uploadToken: string | null) => void;
     onAddManually: (variant?: Entry) => void;
     defaultSection?: string;
 };
@@ -18,6 +18,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
     const [isProcessing, setIsProcessing] = useState(false);
     const [variations, setVariations] = useState<Entry[]>([]);
     const [files, setFiles] = useState<File[]>([]);
+    const [uploadToken, setUploadToken] = useState<string | null>(null);
     const [section, setSection] = useState(() => defaultSection ?? "")
     const [isDragging, setIsDragging] = useState(false);
     const [isDragOver, setIsDragOver] = useState(false);
@@ -97,6 +98,7 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                 if (!data.success) {
                     throw new Error("Failed to process images");
                 }
+                setUploadToken(data.uploadToken ?? null);
                 const payload = data.response.choices[0].message.content;
                 if (payload.startsWith("```json") && payload.endsWith("```")) {
                     const analyzedBookResponse = new AnalyzeBookResponse(JSON.parse(payload.slice(7, -3)), section)
@@ -221,9 +223,10 @@ export default function MultipleImageInput({ onSelectVariant, onAddManually, def
                     key={`variant-${index}`}
                     className="p-2 max-w-sm cursor-pointer"
                     onClick={() => {
-                        onSelectVariant(variant, files);
+                        onSelectVariant(variant, uploadToken);
                         setFiles([]);
                         setVariations([]);
+                        setUploadToken(null);
                     }}
                     draggable
                     onDragStart={(e) => {

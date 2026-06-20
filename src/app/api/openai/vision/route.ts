@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import Sharp from "sharp";
+import {
+  saveTempBatch,
+  saveTempBatchResponse,
+  cleanupStaleTempBatches,
+} from "../../uploads";
+
+/** Abandoned scan batches are purged after this long. */
+const TEMP_BATCH_TTL_MS = 60 * 60 * 1000;
 
 const openai = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
@@ -11,15 +19,24 @@ export async function POST(request: Request) {
 
   const section = data.get("section") as string | null;
 
+  const files = Array.from(data.getAll("files")) as File[];
+
   const images = await Promise.all(
-    Array.from(data.getAll("files")).map((field) =>
-      (field as File)
+    files.map((file) =>
+      file
         .arrayBuffer()
         .then((buffer) =>
           Sharp(buffer).resize(1024, 1024, { fit: "inside" }).jpeg().toBuffer()
         )
     )
   );
+
+  // Stash the original scanned images now, before sending the resized copies to
+  // OpenAI. If the user later selects a variant, the library endpoint just
+  // promotes this batch to the new entry's folder instead of re-uploading.
+  const uploadToken = await saveTempBatch(files);
+  // Opportunistically sweep away scans that were never turned into entries.
+  void cleanupStaleTempBatches(TEMP_BATCH_TTL_MS);
 
   function toDataURL(buffer: Buffer) {
     return "data:image/jpg;base64," + buffer.toString("base64");
@@ -76,8 +93,13 @@ export async function POST(request: Request) {
     max_tokens: 10000,
   });
 
+  // Keep the analysis next to the scanned images so it follows them into the
+  // entry folder when a variant is selected.
+  await saveTempBatchResponse(uploadToken, response);
+
   return NextResponse.json({
     success: response.choices.length > 0,
+    uploadToken,
     response,
   });
 }
