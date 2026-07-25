@@ -13,30 +13,40 @@ type Props = {
   onDelete: (entry: Entry) => void;
 };
 
+/**
+ * An empty column comes back from SQLite as null, which React rejects as an
+ * input value. Every field starts as a string so the inputs stay controlled.
+ */
+function text(value: string | null | undefined): string {
+  return value ?? "";
+}
+
 export default function EditLibraryEntry({
   entry,
   onClose,
   onEdit,
   onDelete,
 }: Props) {
-  const [title, setTitle] = useState(entry.title);
-  const [sortBy, setSortBy] = useState(entry.sortBy);
-  const [author, setAuthor] = useState(entry.author);
-  const [mediaType, setMediaType] = useState(entry.mediaType);
-  const [publishedBy, setPublishedBy] = useState(entry.publishedBy);
-  const [publishedOn, setPublishedOn] = useState(entry.publishedOn);
+  const [title, setTitle] = useState(text(entry.title));
+  const [sortBy, setSortBy] = useState(text(entry.sortBy));
+  const [author, setAuthor] = useState(text(entry.author));
+  const [mediaType, setMediaType] = useState(text(entry.mediaType));
+  const [publishedBy, setPublishedBy] = useState(text(entry.publishedBy));
+  const [publishedOn, setPublishedOn] = useState(text(entry.publishedOn));
   const [publishedLocation, setPublishedLocation] = useState(
-    entry.publishedLocation
+    text(entry.publishedLocation)
   );
-  const [edition, setEdition] = useState(entry.edition);
-  const [editionYear, setEditionYear] = useState(entry.editionYear);
-  const [serialNumber, setSerialNumber] = useState(entry.serialNumber);
-  const [catalogNumber, setCatalogNumber] = useState(entry.catalogNumber);
-  const [section, setSection] = useState(entry.section);
-  const [subCategory, setSubCategory] = useState(entry.subCategory);
-  const [status, setStatus] = useState(entry.status);
-  const [publishedSource, setPublishedSource] = useState(entry.publishedSource);
-  const [pages, setPages] = useState(entry.pages);
+  const [edition, setEdition] = useState(text(entry.edition));
+  const [editionYear, setEditionYear] = useState(text(entry.editionYear));
+  const [serialNumber, setSerialNumber] = useState(text(entry.serialNumber));
+  const [catalogNumber, setCatalogNumber] = useState(text(entry.catalogNumber));
+  const [section, setSection] = useState(text(entry.section));
+  const [subCategory, setSubCategory] = useState(text(entry.subCategory));
+  const [status, setStatus] = useState(text(entry.status));
+  const [publishedSource, setPublishedSource] = useState(
+    text(entry.publishedSource)
+  );
+  const [pages, setPages] = useState(text(entry.pages));
 
   const isNewEntry = !entry.id;
 
