@@ -4,6 +4,22 @@ const migrate = () => {
     db.serialize(() => {
         db.run(
             `
+      CREATE TABLE IF NOT EXISTS section_columns (
+        section TEXT PRIMARY KEY,
+        columns TEXT NOT NULL,
+        updatedAt TEXT
+      );
+    `,
+            (err: Error | null) => {
+                if (err) {
+                    console.error(err.message);
+                } else {
+                    console.log("section_columns table ensured.");
+                }
+            }
+        );
+        db.run(
+            `
       CREATE TABLE IF NOT EXISTS library (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         mediaType TEXT NOT NULL,

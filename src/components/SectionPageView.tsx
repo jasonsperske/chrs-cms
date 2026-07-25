@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ColumnSettingsDialog from "@/components/ColumnSettingsDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import EditLibraryEntry from "@/components/EditLibraryEntry";
 import MultipleImageInput from "@/components/MultipleImageInput";
@@ -16,63 +17,113 @@ import {
 import { TableSubBody } from "@/components/ui/TableSubBody";
 import Toast from "@/components/ui/Toast";
 import {
+  ColumnConfig,
+  normalizeColumnConfig,
+  visibleColumns,
+} from "@/lib/types/library/Columns";
+import {
   Entry,
-  SerializedEntry,
+  EntryField,
+  ImportedRecord,
   SpreadsheetWorksheetPayload,
 } from "@/lib/types/library/Entry";
+import {
+  EntryLike,
+  effectiveValue,
+  getChangedFields,
+  mergedEntry,
+  storedValue,
+} from "@/lib/types/library/Import";
 import { Library } from "@/lib/types/library/Library";
 
 type SectionPageViewProps = {
   section: string;
 };
 
-const ENTRY_FIELDS = [
-  "title",
-  "author",
-  "mediaType",
-  "sortBy",
-  "publishedBy",
-  "publishedOn",
-  "publishedLocation",
-  "edition",
-  "editionYear",
-  "serialNumber",
-  "catalogNumber",
-  "section",
-  "subCategory",
-  "status",
-  "publishedSource",
-  "pages",
-] as const;
-
-type EntryField = (typeof ENTRY_FIELDS)[number];
-
-function getChangedFields(
-  original: Entry,
-  imported: SerializedEntry
-): Set<EntryField> {
-  const changed = new Set<EntryField>();
-  for (const f of ENTRY_FIELDS) {
-    // The export writes sortBy as `sortBy || author || title`, so normalise
-    // the original the same way before comparing to avoid false positives.
-    const origVal =
-      f === "sortBy"
-        ? String(original.sortBy || original.author || original.title || "").trim()
-        : String(original[f] ?? "").trim();
-    const impVal = String(imported[f] ?? "").trim();
-    if (origVal !== impVal) changed.add(f);
-  }
-  return changed;
-}
+/** A column as the table renders it — the composite defaults have no single field. */
+type TableColumn = {
+  key: string;
+  header: string;
+  render: (entry: EntryLike, changed: Set<EntryField>) => React.ReactNode;
+};
 
 function maybeBold(
   value: unknown,
-  field: EntryField,
+  field: EntryField | undefined,
   changed: Set<EntryField>
 ): React.ReactNode {
   if (value === undefined || value === null || value === "") return null;
   const str = String(value);
-  return changed.has(field) ? <strong>{str}</strong> : str;
+  return field && changed.has(field) ? <strong>{str}</strong> : str;
+}
+
+/**
+ * The layout a section falls back to when its columns have not been customized:
+ * the grouped view this table has always shown.
+ */
+const DEFAULT_TABLE_COLUMNS: TableColumn[] = [
+  {
+    key: "title",
+    header: "Title",
+    render: (e, changed) => maybeBold(e.title, "title", changed),
+  },
+  {
+    key: "author",
+    header: "Author",
+    render: (e, changed) => maybeBold(e.author, "author", changed),
+  },
+  {
+    key: "mediaType",
+    header: "Type",
+    render: (e, changed) => maybeBold(e.mediaType, "mediaType", changed),
+  },
+  {
+    key: "published",
+    header: "Published",
+    render: (e, changed) => (
+      <>
+        {maybeBold(e.publishedBy, "publishedBy", changed)}{" "}
+        {maybeBold(e.publishedLocation, "publishedLocation", changed)}{" "}
+        {maybeBold(e.publishedOn, "publishedOn", changed)}
+      </>
+    ),
+  },
+  {
+    key: "edition",
+    header: "Edition",
+    render: (e, changed) => (
+      <>
+        {maybeBold(e.edition, "edition", changed)}{" "}
+        {e.editionYear
+          ? maybeBold(`(${e.editionYear})`, "editionYear", changed)
+          : null}
+      </>
+    ),
+  },
+  {
+    key: "serialNumbers",
+    header: "Serial Numbers",
+    render: (e, changed) => (
+      <>
+        {e.serialNumber
+          ? maybeBold(`isbn:${e.serialNumber}`, "serialNumber", changed)
+          : null}{" "}
+        {e.catalogNumber
+          ? maybeBold(`catalog:${e.catalogNumber}`, "catalogNumber", changed)
+          : null}
+      </>
+    ),
+  },
+];
+
+/** One table column per configured column, in the configured order. */
+function configuredTableColumns(config: ColumnConfig): TableColumn[] {
+  return visibleColumns(config).map((def) => ({
+    key: def.key,
+    header: def.label,
+    render: (entry: EntryLike, changed: Set<EntryField>) =>
+      maybeBold(def.value(entry), def.field, changed),
+  }));
 }
 
 export default function SectionPageView({ section }: SectionPageViewProps) {
@@ -83,20 +134,30 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
   const [data, setData] = useState<Library | undefined>(undefined);
   const [lastInsert, setLastInsert] = useState(Date.now());
 
+  // Column layout state (null = follow the defaults)
+  const [columnConfig, setColumnConfig] = useState<ColumnConfig | null>(null);
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
+
   // Import state
-  const [importRecords, setImportRecords] = useState<SerializedEntry[] | null>(
+  const [importRecords, setImportRecords] = useState<ImportedRecord[] | null>(
     null
   );
+  const [importFields, setImportFields] = useState<EntryField[]>([]);
   const [importError, setImportError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [processingKeys, setProcessingKeys] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const tableColumns = useMemo(
+    () => (columnConfig ? configuredTableColumns(columnConfig) : DEFAULT_TABLE_COLUMNS),
+    [columnConfig]
+  );
+
   const { importMap, newImportEntries } = useMemo(() => {
     if (!importRecords) return { importMap: null, newImportEntries: [] };
-    const map = new Map<number, SerializedEntry>();
-    const newEntries: SerializedEntry[] = [];
+    const map = new Map<number, ImportedRecord>();
+    const newEntries: ImportedRecord[] = [];
     for (const rec of importRecords) {
       if (rec.id != null) {
         map.set(rec.id, rec);
@@ -115,17 +176,14 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
         if (!entry.id) continue;
         const imported = importMap.get(entry.id);
         if (!imported) continue;
-        const changed = getChangedFields(entry, imported);
+        const changed = getChangedFields(entry, imported, importFields);
         if (changed.size === 0) continue;
 
         const diff = Object.fromEntries(
-          [...changed].map((f) => {
-            const from =
-              f === "sortBy"
-                ? String(entry.sortBy || entry.author || entry.title || "").trim()
-                : String(entry[f] ?? "").trim();
-            return [f, { from, to: String(imported[f] ?? "").trim() }];
-          })
+          [...changed].map((f) => [
+            f,
+            { from: storedValue(entry, f), to: effectiveValue(entry, imported, f) },
+          ])
         );
         console.log(`[import diff] id=${entry.id} "${entry.title}"`, diff);
       }
@@ -146,6 +204,17 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
         setData(library);
       });
   }, [activeSection]);
+
+  const refreshColumns = useCallback(() => {
+    fetch(`/api/library/columns?section=${encodeURIComponent(activeSection)}`)
+      .then((res) => res.json())
+      .then((payload) => setColumnConfig(normalizeColumnConfig(payload?.columns)))
+      .catch(() => setColumnConfig(null));
+  }, [activeSection]);
+
+  useEffect(() => {
+    refreshColumns();
+  }, [refreshColumns]);
 
   function handleVariantSelection(entry: Entry, uploadToken: string | null): void {
     const payload = new Entry(entry.title, entry.mediaType, {
@@ -223,6 +292,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
         return;
       }
 
+      setImportFields(json.fields ?? []);
       setImportRecords(json.records.map((r) => ({ ...r, section: activeSection })));
       setImportError(null);
     } catch {
@@ -234,6 +304,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
 
   function handleCancelImport() {
     setImportRecords(null);
+    setImportFields([]);
     setImportError(null);
     setProcessingKeys(new Set());
   }
@@ -264,14 +335,18 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
       if (!entry.id) continue;
       const imported = importMapSnapshot.get(entry.id);
       if (!imported) continue;
-      const changed = getChangedFields(entry, imported);
+      const changed = getChangedFields(entry, imported, importFields);
       if (changed.size === 0) continue;
 
       setProcessingKeys((prev) => new Set([...prev, String(entry.id)]));
-      const updatedEntry = new Entry(imported.title, imported.mediaType, {
-        ...imported,
-        section: activeSection,
-      });
+      // Only the fields the sheet carried are taken from the import; the rest of
+      // the entry is preserved, so hidden columns survive a round trip.
+      const merged = mergedEntry(entry, imported, importFields);
+      const updatedEntry = new Entry(
+        String(merged.title ?? entry.title),
+        String(merged.mediaType ?? entry.mediaType),
+        { ...merged, section: activeSection }
+      );
       const res = await fetch(`/api/library/${entry.id}`, {
         method: "PUT",
         body: updatedEntry.asFormData(),
@@ -290,10 +365,14 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
       const imported = newEntriesSnapshot[i];
       const tempKey = `new-${i}`;
       setProcessingKeys((prev) => new Set([...prev, tempKey]));
-      const newEntry = new Entry(imported.title, imported.mediaType, {
-        ...imported,
-        section: activeSection,
-      });
+      const newEntry = new Entry(
+        String(imported.title ?? ""),
+        String(imported.mediaType ?? "book"),
+        {
+          ...imported,
+          section: activeSection,
+        }
+      );
       const res = await fetch("/api/library", {
         method: "POST",
         body: newEntry.asFormData(),
@@ -314,8 +393,15 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
 
     setIsSaving(false);
     setImportRecords(null);
+    setImportFields([]);
     setProcessingKeys(new Set());
     setLastInsert(Date.now());
+  }
+
+  function renderCells(entry: EntryLike, changed: Set<EntryField>) {
+    return tableColumns.map((column) => (
+      <TableCell key={column.key}>{column.render(entry, changed)}</TableCell>
+    ));
   }
 
   function renderEntryRow(d: Entry) {
@@ -326,19 +412,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
           data-id={d.id}
           onClick={() => setSelected(d)}
         >
-          <TableCell>{d.title}</TableCell>
-          <TableCell>{d.author}</TableCell>
-          <TableCell>{d.mediaType}</TableCell>
-          <TableCell>
-            {d.publishedBy} {d.publishedLocation} {d.publishedOn}
-          </TableCell>
-          <TableCell>
-            {d.edition} {d.editionYear ? `(${d.editionYear})` : null}
-          </TableCell>
-          <TableCell>
-            {d.serialNumber ? `isbn:${d.serialNumber}` : null}{" "}
-            {d.catalogNumber ? `catalog:${d.catalogNumber}` : null}
-          </TableCell>
+          {renderCells(d, new Set<EntryField>())}
         </TableRow>
       );
     }
@@ -346,13 +420,16 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
     const imported = d.id != null ? importMap.get(d.id) : undefined;
     const isDeleted = !imported;
     const changed = imported
-      ? getChangedFields(d, imported)
+      ? getChangedFields(d, imported, importFields)
       : new Set<EntryField>();
     const isModified = changed.size > 0;
     const isProcessing = d.id != null && processingKeys.has(String(d.id));
 
-    // Show imported (new) values for modified rows; original for deleted/unchanged
-    const display: Entry | SerializedEntry = imported ?? d;
+    // Show the entry as it will look after saving: imported values for the
+    // fields the sheet carried, current values for everything else.
+    const display: EntryLike = imported
+      ? (mergedEntry(d, imported, importFields) as EntryLike)
+      : d;
 
     let rowClass = "";
     if (isProcessing) rowClass = "opacity-60";
@@ -366,38 +443,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
         className={rowClass}
         style={isDeleted ? { textDecoration: "line-through" } : undefined}
       >
-        <TableCell>{maybeBold(display.title, "title", changed)}</TableCell>
-        <TableCell>{maybeBold(display.author, "author", changed)}</TableCell>
-        <TableCell>
-          {maybeBold(display.mediaType, "mediaType", changed)}
-        </TableCell>
-        <TableCell>
-          {maybeBold(display.publishedBy, "publishedBy", changed)}{" "}
-          {maybeBold(
-            display.publishedLocation,
-            "publishedLocation",
-            changed
-          )}{" "}
-          {maybeBold(display.publishedOn, "publishedOn", changed)}
-        </TableCell>
-        <TableCell>
-          {maybeBold(display.edition, "edition", changed)}{" "}
-          {display.editionYear
-            ? maybeBold(`(${display.editionYear})`, "editionYear", changed)
-            : null}
-        </TableCell>
-        <TableCell>
-          {display.serialNumber
-            ? maybeBold(`isbn:${display.serialNumber}`, "serialNumber", changed)
-            : null}{" "}
-          {display.catalogNumber
-            ? maybeBold(
-                `catalog:${display.catalogNumber}`,
-                "catalogNumber",
-                changed
-              )
-            : null}
-        </TableCell>
+        {renderCells(display, changed)}
       </TableRow>
     );
   }
@@ -428,25 +474,22 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
           <Table className="sm:overflow-x-scroll" key={lastInsert}>
             <TableHeader>
               <TableRow>
-                <TableHead key="title">Title</TableHead>
-                <TableHead key="author">Author</TableHead>
-                <TableHead key="mediaType">Type</TableHead>
-                <TableHead key="published">Published</TableHead>
-                <TableHead key="edition">Edition</TableHead>
-                <TableHead key="serialNumbers">Serial Numbers</TableHead>
+                {tableColumns.map((column) => (
+                  <TableHead key={column.key}>{column.header}</TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             {data?.sections.map((section) => (
               <TableSubBody
                 key={`section:${section.name}`}
-                cols={6}
+                cols={tableColumns.length}
                 sectionName={section.name ? section.name : <i>Unknown</i>}
               >
                 {section.entries.map((d) => renderEntryRow(d))}
               </TableSubBody>
             ))}
             {importMap && newImportEntries.length > 0 && (
-              <TableSubBody cols={6} sectionName="New Entries">
+              <TableSubBody cols={tableColumns.length} sectionName="New Entries">
                 {newImportEntries.map((imported, i) => {
                   const tempKey = `new-${i}`;
                   const isProcessing = processingKeys.has(tempKey);
@@ -455,27 +498,7 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
                       key={tempKey}
                       className={isProcessing ? "opacity-60" : "bg-green-100 dark:bg-green-950"}
                     >
-                      <TableCell>{imported.title}</TableCell>
-                      <TableCell>{imported.author}</TableCell>
-                      <TableCell>{imported.mediaType}</TableCell>
-                      <TableCell>
-                        {imported.publishedBy} {imported.publishedLocation}{" "}
-                        {imported.publishedOn}
-                      </TableCell>
-                      <TableCell>
-                        {imported.edition}{" "}
-                        {imported.editionYear
-                          ? `(${imported.editionYear})`
-                          : null}
-                      </TableCell>
-                      <TableCell>
-                        {imported.serialNumber
-                          ? `isbn:${imported.serialNumber}`
-                          : null}{" "}
-                        {imported.catalogNumber
-                          ? `catalog:${imported.catalogNumber}`
-                          : null}
-                      </TableCell>
+                      {renderCells(imported, new Set<EntryField>())}
                     </TableRow>
                   );
                 })}
@@ -515,6 +538,16 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
                   />
                 </>
               )}
+              {" · "}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowColumnSettings(true);
+                }}
+              >
+                Columns{columnConfig ? " (customized)" : ""}
+              </a>
             </p>
             {importMap && (
               <div className="flex gap-2 justify-center mt-3">
@@ -539,6 +572,17 @@ export default function SectionPageView({ section }: SectionPageViewProps) {
             </div>
           </div>
         </div>
+        {showColumnSettings ? (
+          <ColumnSettingsDialog
+            section={activeSection}
+            config={columnConfig}
+            onClose={() => setShowColumnSettings(false)}
+            onSaved={(config) => {
+              setColumnConfig(config);
+              setShowColumnSettings(false);
+            }}
+          />
+        ) : null}
         {!importMap && selected ? (
           <EditLibraryEntry
             entry={selected}
