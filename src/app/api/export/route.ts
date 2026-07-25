@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
 import { getAllColumnConfigs, sectionKey } from "../columns";
 import { apiGet } from "../database";
-import { visibleColumns } from "@/lib/types/library/Columns";
+import { orderedColumns } from "@/lib/types/library/Columns";
 import { Entry } from "@/lib/types/library/Entry";
 import { Library } from "@/lib/types/library/Library";
 
@@ -54,10 +54,10 @@ export async function GET(request: Request) {
             worksheet = workbook.addSheet(sanitizeName(section.name), i);
         }
 
-        // Column A always holds the ID (hidden), so the sheet can be imported back
-        // no matter which columns the section chooses to show. Everything the
-        // section has configured follows from column B.
-        const columns = visibleColumns(columnConfigs.get(sectionKey(section.name)))
+        // Column A always holds the ID (hidden), so the sheet can be imported
+        // back. Every column follows from column B in the section's order —
+        // hiding a column only affects the table, never the workbook.
+        const columns = orderedColumns(columnConfigs.get(sectionKey(section.name)))
         const lastColumn = columns.length + 1
 
         worksheet.cell(1, 1).value("ID")

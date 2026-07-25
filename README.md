@@ -17,8 +17,12 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ## Column layouts
 
 Each section chooses which columns it shows and the order they appear in, from
-the "Columns" link at the bottom of the section page. The same layout is used for
-that section's XLSX export, and "Reset to default" removes the customization.
+the "Columns" link at the bottom of the section page. "Reset to default" removes
+the customization.
+
+The XLSX export follows the section's column order, but always includes every
+column — hiding a column only takes it out of the table, so the workbook is
+always the complete record.
 
 A section with no saved layout shows the grouped table it always has and exports
 all sixteen columns in the original order.

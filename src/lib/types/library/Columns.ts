@@ -131,13 +131,29 @@ export function isDefaultColumnConfig(config: ColumnConfig): boolean {
 }
 
 /**
- * The columns to render or export, in order. A section with no config gets every
- * column in the default order.
+ * Every column in the section's order. The export uses this: hiding a column
+ * only takes it out of the table, the workbook always carries the full record.
+ */
+export function orderedColumns(config: ColumnConfig | null | undefined): ColumnDef[] {
+    if (!config) return [...COLUMN_DEFS]
+
+    const ordered = config
+        .map((setting) => COLUMNS_BY_KEY.get(setting.key))
+        .filter((def): def is ColumnDef => def !== undefined)
+
+    // A stored config should already list every column, but never drop one.
+    const listed = new Set(ordered.map((def) => def.key))
+    return [...ordered, ...COLUMN_DEFS.filter((def) => !listed.has(def.key))]
+}
+
+/**
+ * The columns the table renders, in the section's order. A section with no
+ * config shows every column.
  */
 export function visibleColumns(config: ColumnConfig | null | undefined): ColumnDef[] {
     if (!config) return [...COLUMN_DEFS]
-    return config
-        .filter((setting) => setting.visible)
-        .map((setting) => COLUMNS_BY_KEY.get(setting.key))
-        .filter((def): def is ColumnDef => def !== undefined)
+    const shown = new Set(
+        config.filter((setting) => setting.visible).map((setting) => setting.key)
+    )
+    return orderedColumns(config).filter((def) => shown.has(def.key))
 }

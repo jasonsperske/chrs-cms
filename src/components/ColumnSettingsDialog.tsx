@@ -99,8 +99,8 @@ export default function ColumnSettingsDialog({
         <DialogTitle className="pb-1">Columns</DialogTitle>
         <p className="text-sm text-muted-foreground">
           Choose which columns {section ? `“${section}”` : "this section"} shows,
-          and the order they appear in. The same layout is used for the XLSX
-          export. Importing always works, whichever columns are hidden.
+          and the order they appear in. The XLSX export follows the same order
+          but always includes every column, hidden ones as well.
         </p>
 
         <ul className="flex flex-col divide-y rounded border">
