@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
+import { getAllColumnConfigs, sectionKey } from "../columns";
 import { apiGet } from "../database";
+import { visibleColumns } from "@/lib/types/library/Columns";
 import { Entry } from "@/lib/types/library/Entry";
 import { Library } from "@/lib/types/library/Library";
 
@@ -8,15 +10,6 @@ const MAX_SHEET_NAME_LENGTH = 31;
 
 function sanitizeName(name: string): string {
     return name?.replace(/[^a-z0-9\s]/gi, '-').substring(0, MAX_SHEET_NAME_LENGTH) ?? "Unknown";
-}
-
-function sanitizeYear(entry: Entry): number | undefined {
-    const years = [entry.publishedOn, entry.editionYear]
-        .filter(Boolean)
-        .map((date) => /(\d{4})/.exec(date ?? "")?.[1])
-        .map(Number)
-        .filter(Boolean);
-    return years.length ? Math.max(...years) : undefined;
 }
 
 export const dynamic = 'force-dynamic'
@@ -47,6 +40,7 @@ export async function GET(request: Request) {
     query += ' ORDER BY section ASC, mediaType ASC, id ASC'
 
     const library = new Library(await apiGet<Entry>(query, params), librarySection)
+    const columnConfigs = await getAllColumnConfigs()
     const workbook = await XlsxPopulate.fromBlankAsync();
     library.sections.forEach((section, i) => {
         let worksheet;
@@ -59,65 +53,40 @@ export async function GET(request: Request) {
         } else {
             worksheet = workbook.addSheet(sanitizeName(section.name), i);
         }
-        worksheet.cell("A1").value("ID")
-        worksheet.cell("B1").value("Media");
-        worksheet.cell("C1").value("Sort By");
-        worksheet.cell("D1").value("Author");
-        worksheet.cell("E1").value("Title");
-        worksheet.cell("F1").value("Published On");
-        worksheet.cell("G1").value("Year");
-        worksheet.cell("H1").value("Place Published");
-        worksheet.cell("I1").value("Publisher");
-        worksheet.cell("J1").value("Edition");
-        worksheet.cell("K1").value("Edition Year");
-        worksheet.cell("L1").value("ISBN");
-        worksheet.cell("M1").value("LOC");
-        worksheet.cell("N1").value("Sub-Category");
-        worksheet.cell("O1").value("Status");
-        worksheet.cell("P1").value("Published Source");
-        worksheet.cell("Q1").value("Pages");
+
+        // Column A always holds the ID (hidden), so the sheet can be imported back
+        // no matter which columns the section chooses to show. Everything the
+        // section has configured follows from column B.
+        const columns = visibleColumns(columnConfigs.get(sectionKey(section.name)))
+        const lastColumn = columns.length + 1
+
+        worksheet.cell(1, 1).value("ID")
+        columns.forEach((column, c) => {
+            worksheet.cell(1, c + 2).value(column.label)
+        })
         // set header styles
-        const header = worksheet.range("A1:Q1");
+        const header = worksheet.range(1, 1, 1, lastColumn);
         header.style({ bold: true, fontSize: 11, fontColor: 'FFFFFF', fill: '156082' });
-        worksheet.column("A").width(4);
-        worksheet.column("B").width(12);
-        worksheet.column("C").width(25);
-        worksheet.column("D").width(25);
-        worksheet.column("E").width(40);
-        worksheet.column("F").width(14);
-        worksheet.column("G").width(6);
-        worksheet.column("H").width(15);
-        worksheet.column("I").width(21);
-        worksheet.column("J").width(21);
-        worksheet.column("K").width(14);
-        worksheet.column("L").width(15);
-        worksheet.column("M").width(10);
-        worksheet.column("N").width(10);
-        worksheet.column("O").width(10);
-        worksheet.column("P").width(15);
-        worksheet.column("Q").width(10);
+        worksheet.column(1).width(4);
+        columns.forEach((column, c) => {
+            worksheet.column(c + 2).width(column.width);
+        });
         // freeze top row
         worksheet.freezePanes(0, 1);
         let lastMedia = "";
         section.entries.forEach((entry, j) => {
-            worksheet.cell(`A${j + 2}`).value(entry.id);
-            worksheet.cell(`B${j + 2}`).value(entry.mediaType);
-            const sortBy = entry.sortBy ? entry.sortBy : entry.author ? entry.author : entry.title;
-            worksheet.cell(`C${j + 2}`).value(sortBy).style('wrapText', true);
-            worksheet.cell(`D${j + 2}`).value(entry.author).style('wrapText', true);
-            worksheet.cell(`E${j + 2}`).value(entry.title).style({ 'wrapText': true, bold: true });
-            worksheet.cell(`F${j + 2}`).value(entry.publishedOn);
-            const year = sanitizeYear(entry);
-            if (year) {
-                worksheet.cell(`G${j + 2}`).value(year).style({ horizontalAlignment: 'center', fill: 'f0f0f0' });
-            }
-            worksheet.cell(`H${j + 2}`).value(entry.publishedLocation).style('wrapText', true);
-            worksheet.cell(`I${j + 2}`).value(entry.publishedBy).style('wrapText', true);
-            worksheet.cell(`J${j + 2}`).value(entry.edition).style('wrapText', true);
-            worksheet.cell(`K${j + 2}`).value(entry.editionYear).style('wrapText', true);
-
-            worksheet.cell(`L${j + 2}`).value(entry.serialNumber);
-            worksheet.cell(`M${j + 2}`).value(entry.catalogNumber);
+            const row = j + 2
+            worksheet.cell(row, 1).value(entry.id);
+            columns.forEach((column, c) => {
+                const cell = worksheet.cell(row, c + 2)
+                const value = column.value(entry)
+                cell.value(value)
+                // Only decorate cells that carry a value, so an empty Year keeps
+                // the plain background it always had.
+                if (column.cellStyle && value !== undefined && value !== "") {
+                    cell.style(column.cellStyle)
+                }
+            });
             const style = { verticalAlignment: 'top', border: true, fontSize: 12 } as Record<string, unknown>;
             if (!lastMedia) {
                 lastMedia = entry.mediaType;
@@ -125,9 +94,9 @@ export async function GET(request: Request) {
                 lastMedia = entry.mediaType;
                 style['topBorder'] = 'double';
             }
-            worksheet.range(`A${j + 2}:Q${j + 2}`).style(style);
+            worksheet.range(row, 1, row, lastColumn).style(style);
         });
-        worksheet.column("A").hidden(true);
+        worksheet.column(1).hidden(true);
     });
 
     const timestamp = new Date().toISOString()

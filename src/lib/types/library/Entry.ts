@@ -23,9 +23,42 @@ export type SerializedEntry = {
     deleted?: boolean
 }
 
+/** The Entry fields an import can carry, in the order the UI compares them. */
+export const ENTRY_FIELDS = [
+    "title",
+    "author",
+    "mediaType",
+    "sortBy",
+    "publishedBy",
+    "publishedOn",
+    "publishedLocation",
+    "edition",
+    "editionYear",
+    "serialNumber",
+    "catalogNumber",
+    "section",
+    "subCategory",
+    "status",
+    "publishedSource",
+    "pages",
+] as const
+
+export type EntryField = (typeof ENTRY_FIELDS)[number]
+
+/**
+ * A row read from a spreadsheet. Fields are optional because a section can hide
+ * columns from its export — a missing field means "not in the sheet", not "empty".
+ */
+export type ImportedRecord = Partial<SerializedEntry>
+
 /** Response body when parsing a library spreadsheet (first worksheet). */
 export type SpreadsheetWorksheetPayload = {
-    records: SerializedEntry[]
+    records: ImportedRecord[]
+    /**
+     * The Entry fields whose column was present in the sheet. Fields outside this
+     * list were never in the file and must be left untouched on save.
+     */
+    fields: EntryField[]
 }
 
 type OptionalFields = {

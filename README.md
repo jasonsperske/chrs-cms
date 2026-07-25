@@ -14,6 +14,20 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Column layouts
+
+Each section chooses which columns it shows and the order they appear in, from
+the "Columns" link at the bottom of the section page. The same layout is used for
+that section's XLSX export, and "Reset to default" removes the customization.
+
+A section with no saved layout shows the grouped table it always has and exports
+all sixteen columns in the original order.
+
+Importing is unaffected by the layout. The ID column is always exported (hidden)
+so rows can be matched, and any column left out of a sheet is left alone on
+import rather than being read as an empty value. Layouts are stored per section
+in the `section_columns` table, which `npm run build:db` creates.
+
 ## OpenAI Assistant
 
 This application uses an OpenAI assistant called `CHRS Archivist` with the following configuration:

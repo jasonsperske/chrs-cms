@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import type { SerializedEntry, SpreadsheetWorksheetPayload } from "@/lib/types/library/Entry";
+import { COLUMN_DEFS } from "@/lib/types/library/Columns";
+import type {
+    EntryField,
+    ImportedRecord,
+    SpreadsheetWorksheetPayload,
+} from "@/lib/types/library/Entry";
 
 export async function POST(request: Request): Promise<Response> {
     const formData = await request.formData();
@@ -44,7 +49,7 @@ export async function POST(request: Request): Promise<Response> {
     });
 
     if (rows.length < 2) {
-        return NextResponse.json({ records: [] } satisfies SpreadsheetWorksheetPayload);
+        return NextResponse.json({ records: [], fields: [] } satisfies SpreadsheetWorksheetPayload);
     }
 
     // Build a column-name → index map from the header row
@@ -52,57 +57,47 @@ export async function POST(request: Request): Promise<Response> {
     const col = (name: string) => headers.indexOf(name);
 
     const idCol = col("ID");
-    const mediaCol = col("Media");
-    const sortByCol = col("Sort By");
-    const authorCol = col("Author");
-    const titleCol = col("Title");
-    const publishedOnCol = col("Published On");
-    const publishedLocationCol = col("Place Published");
-    const publishedByCol = col("Publisher");
-    const editionCol = col("Edition");
-    const editionYearCol = col("Edition Year");
-    const serialNumberCol = col("ISBN");
-    const catalogNumberCol = col("LOC");
-    const subCategoryCol = col("Sub-Category");
-    const statusCol = col("Status");
-    const publishedSourceCol = col("Published Source");
-    const pagesCol = col("Pages");
+
+    // Match the sheet against the known columns by header text. A section can
+    // hide columns from its export, so whatever is missing here is simply not
+    // part of this import — the fields it covers are left untouched on save.
+    // Derived columns (Year) are display only and never read back.
+    const sheetColumns = COLUMN_DEFS.flatMap((def) => {
+        if (!def.field) return [];
+        const index = col(def.label);
+        return index >= 0 ? [{ field: def.field, index }] : [];
+    });
+    const fields: EntryField[] = sheetColumns.map((column) => column.field);
 
     function str(v: unknown): string | undefined {
         if (v === null || v === undefined || v === "") return undefined;
         return String(v).trim() || undefined;
     }
 
-    const records: SerializedEntry[] = [];
+    const records: ImportedRecord[] = [];
 
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i] as unknown[];
-        const title = str(row[titleCol]);
-        const mediaType = str(row[mediaCol]);
-        if (!title || !mediaType) continue;
 
         const rawId = idCol >= 0 ? row[idCol] : undefined;
         const numId = rawId != null && rawId !== "" ? Number(rawId) : undefined;
+        const id = numId != null && !isNaN(numId) ? numId : undefined;
 
-        records.push({
-            id: numId != null && !isNaN(numId) ? numId : undefined,
-            mediaType,
-            title,
-            sortBy: sortByCol >= 0 ? str(row[sortByCol]) : undefined,
-            author: authorCol >= 0 ? str(row[authorCol]) : undefined,
-            publishedOn: publishedOnCol >= 0 ? str(row[publishedOnCol]) : undefined,
-            publishedLocation: publishedLocationCol >= 0 ? str(row[publishedLocationCol]) : undefined,
-            publishedBy: publishedByCol >= 0 ? str(row[publishedByCol]) : undefined,
-            edition: editionCol >= 0 ? str(row[editionCol]) : undefined,
-            editionYear: editionYearCol >= 0 ? str(row[editionYearCol]) : undefined,
-            serialNumber: serialNumberCol >= 0 ? str(row[serialNumberCol]) : undefined,
-            catalogNumber: catalogNumberCol >= 0 ? str(row[catalogNumberCol]) : undefined,
-            subCategory: subCategoryCol >= 0 ? str(row[subCategoryCol]) : undefined,
-            status: statusCol >= 0 ? str(row[statusCol]) : undefined,
-            publishedSource: publishedSourceCol >= 0 ? str(row[publishedSourceCol]) : undefined,
-            pages: pagesCol >= 0 ? str(row[pagesCol]) : undefined,
-        });
+        const values: Record<string, string | undefined> = {};
+        for (const column of sheetColumns) {
+            values[column.field] = str(row[column.index]);
+        }
+
+        // An existing row is identified by its ID, so it can be updated even when
+        // the sheet leaves out Title or Media. A new row still needs a title;
+        // without a Media column it becomes a book, matching the manual add form.
+        if (id === undefined) {
+            if (!values.title) continue;
+            if (!values.mediaType) values.mediaType = "book";
+        }
+
+        records.push({ id, ...values } as ImportedRecord);
     }
 
-    return NextResponse.json({ records } satisfies SpreadsheetWorksheetPayload);
+    return NextResponse.json({ records, fields } satisfies SpreadsheetWorksheetPayload);
 }
