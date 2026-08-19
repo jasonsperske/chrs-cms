@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAllColumnConfigs, sortBySection } from "../columns";
 import { apiGet, apiPost } from "../database";
 import { saveEntryImages, moveTempBatchToEntry } from "../uploads";
 import { Entry } from "@/lib/types/library/Entry";
@@ -9,7 +10,9 @@ export async function GET(request: Request) {
     const sectionParam = searchParams.get("section")
 
     const baseQuery = "SELECT * FROM library"
-    const orderBy = " ORDER BY section ASC, mediaType ASC, sortBy ASC, title ASC"
+    // Sections come out of the database grouped; the rows inside each one are
+    // then ordered by that section's sort criteria.
+    const orderBy = " ORDER BY section ASC"
 
     let query = baseQuery
     const params: unknown[] = []
@@ -26,7 +29,8 @@ export async function GET(request: Request) {
 
     query += orderBy
 
-    const results = await apiGet<Entry>(query, params)
+    const rows = await apiGet<Entry>(query, params)
+    const results = sortBySection(rows, await getAllColumnConfigs())
     return NextResponse.json({ success: true, results })
 }
 

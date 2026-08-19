@@ -2,7 +2,9 @@ import { apiExec, apiGet } from "./database"
 import {
     ColumnConfig,
     normalizeColumnConfig,
+    sortEntries,
 } from "@/lib/types/library/Columns"
+import type { EntryLike } from "@/lib/types/library/Import"
 
 /**
  * Per section column layout. The section name is the key, with "" standing for
@@ -96,4 +98,29 @@ export async function deleteColumnConfig(
     return await apiExec("DELETE FROM section_columns WHERE section = ?", [
         sectionKey(section),
     ])
+}
+
+/**
+ * Order rows within each section by that section's sort criteria, leaving the
+ * sections themselves in the order they arrive (the query's ORDER BY). Rows must
+ * already be grouped by section, which the library queries guarantee.
+ */
+export function sortBySection<T extends EntryLike>(
+    rows: T[],
+    configs: Map<string, ColumnConfig>
+): T[] {
+    const sections = new Map<string, T[]>()
+    for (const row of rows) {
+        const key = sectionKey(row.section)
+        const group = sections.get(key)
+        if (group) {
+            group.push(row)
+        } else {
+            sections.set(key, [row])
+        }
+    }
+
+    return [...sections].flatMap(([key, group]) =>
+        sortEntries(group, configs.get(key) ?? null)
+    )
 }

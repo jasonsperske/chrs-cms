@@ -27,6 +27,13 @@ always the complete record.
 A section with no saved layout shows the grouped table it always has and exports
 all sixteen columns in the original order.
 
+Entries are sorted by the section's sort criteria: the columns it shows, in the
+order it shows them, so the first visible column leads and the rest break ties.
+A section with no customized sort criteria falls back to the Sort By column —
+media type, then Sort By (which itself falls back to author then title), then
+title — the order the library has always used. Blank values sort last, and the
+table and the export use the same order.
+
 Importing is unaffected by the layout. The ID column is always exported (hidden)
 so rows can be matched, and any column left out of a sheet is left alone on
 import rather than being read as an empty value. Layouts are stored per section

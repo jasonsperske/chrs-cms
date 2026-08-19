@@ -157,3 +157,58 @@ export function visibleColumns(config: ColumnConfig | null | undefined): ColumnD
     )
     return orderedColumns(config).filter((def) => shown.has(def.key))
 }
+
+/**
+ * The order a section falls back to when it has no customized sort criteria:
+ * the grouping by media type the library has always used, then the Sort By
+ * column (which itself falls back to author then title), then the title.
+ */
+const DEFAULT_SORT_KEYS: ColumnKey[] = ["mediaType", "sortBy", "title"]
+
+/**
+ * The columns a section sorts on, in priority order. A customized section sorts
+ * by the columns it shows, in the order it shows them; a section with no
+ * customization has no sort criteria of its own and falls back to the Sort By
+ * column.
+ */
+export function sortColumns(config: ColumnConfig | null | undefined): ColumnDef[] {
+    const shown = config ? visibleColumns(config) : []
+    if (shown.length) return shown
+    return DEFAULT_SORT_KEYS.map((key) => COLUMNS_BY_KEY.get(key)).filter(
+        (def): def is ColumnDef => def !== undefined
+    )
+}
+
+/** Compare one column's values: numbers numerically, text case-insensitively, blanks last. */
+function compareValues(
+    a: string | number | undefined,
+    b: string | number | undefined
+): number {
+    const aBlank = a === undefined || a === ""
+    const bBlank = b === undefined || b === ""
+    if (aBlank || bBlank) return aBlank === bBlank ? 0 : aBlank ? 1 : -1
+    if (typeof a === "number" && typeof b === "number") return a - b
+    return String(a).localeCompare(String(b), undefined, { sensitivity: "base" })
+}
+
+/** Order two entries by a section's sort criteria. */
+export function compareEntries(
+    config: ColumnConfig | null | undefined
+): (a: EntryLike, b: EntryLike) => number {
+    const columns = sortColumns(config)
+    return (a, b) => {
+        for (const column of columns) {
+            const order = compareValues(column.value(a), column.value(b))
+            if (order !== 0) return order
+        }
+        return 0
+    }
+}
+
+/** A copy of the entries in the section's sort order. */
+export function sortEntries<T extends EntryLike>(
+    entries: T[],
+    config: ColumnConfig | null | undefined
+): T[] {
+    return [...entries].sort(compareEntries(config))
+}
