@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
-import { getAllColumnConfigs, sectionKey } from "../columns";
+import { getAllColumnConfigs, sectionKey, sortBySection } from "../columns";
 import { apiGet } from "../database";
 import { orderedColumns } from "@/lib/types/library/Columns";
 import { Entry } from "@/lib/types/library/Entry";
@@ -37,10 +37,11 @@ export async function GET(request: Request) {
         }
     }
 
-    query += ' ORDER BY section ASC, mediaType ASC, id ASC'
+    query += ' ORDER BY section ASC, id ASC'
 
-    const library = new Library(await apiGet<Entry>(query, params), librarySection)
     const columnConfigs = await getAllColumnConfigs()
+    const rows = sortBySection(await apiGet<Entry>(query, params), columnConfigs)
+    const library = new Library(rows, librarySection)
     const workbook = await XlsxPopulate.fromBlankAsync();
     library.sections.forEach((section, i) => {
         let worksheet;
